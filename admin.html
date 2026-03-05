@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel — SRMIST Club Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #03030a; --surface: #0d0d1a; --card: #0f0f22; --card2: #111128;
+  --accent: #6c63ff; --accent2: #ff6584; --accent3: #43e97b; --gold: #f7c948; --cyan: #00d2ff;
+  --text: #f0f0ff; --muted: #8888aa; --border: rgba(108,99,255,0.15); --sidebar-w: 260px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;cursor:none;overflow-x:hidden;}
+.cursor{position:fixed;width:10px;height:10px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;mix-blend-mode:screen;transition:transform 0.1s;}
+.cursor-ring{position:fixed;width:32px;height:32px;border:1.5px solid rgba(108,99,255,0.5);border-radius:50%;pointer-events:none;z-index:9998;transition:width .25s,height .25s,border-color .25s;}
+
+/* ===== SIDEBAR ===== */
+.sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;}
+.sidebar::-webkit-scrollbar{width:4px;} .sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+.sidebar-brand{padding:28px 24px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);}
+.brand-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 6px 20px rgba(108,99,255,0.35);flex-shrink:0;}
+.brand-text{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;letter-spacing:-0.3px;}
+.brand-text span{display:block;font-size:0.68rem;font-weight:400;color:var(--muted);font-family:'DM Sans',sans-serif;margin-top:1px;}
+.admin-badge{display:inline-flex;align-items:center;gap:6px;padding:3px 10px;background:rgba(255,101,132,0.15);border:1px solid rgba(255,101,132,0.25);border-radius:100px;font-size:0.65rem;color:var(--accent2);font-weight:700;letter-spacing:0.5px;text-transform:uppercase;margin:12px 20px 0;}
+.sidebar-user{padding:14px 18px;margin:12px;background:rgba(255,101,132,0.07);border:1px solid rgba(255,101,132,0.15);border-radius:14px;display:flex;align-items:center;gap:12px;}
+.user-avatar{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent2),var(--gold));display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;flex-shrink:0;font-family:'Syne',sans-serif;}
+.user-info strong{display:block;font-size:0.85rem;font-weight:600;}
+.user-info span{font-size:0.72rem;color:var(--accent2);font-weight:500;}
+.sidebar-nav{padding:16px 12px;flex:1;}
+.nav-section-label{font-size:0.65rem;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;padding:0 12px;margin:16px 0 8px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;color:var(--muted);font-size:0.88rem;font-weight:500;text-decoration:none;cursor:none;transition:all 0.25s;margin-bottom:2px;position:relative;overflow:hidden;}
+.nav-item::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:0;background:var(--accent2);border-radius:0 3px 3px 0;transition:height 0.3s;}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.05);}
+.nav-item.active{color:var(--text);background:rgba(255,101,132,0.12);}
+.nav-item.active::before{height:60%;}
+.nav-icon{font-size:1.05rem;width:20px;text-align:center;flex-shrink:0;}
+.nav-badge{margin-left:auto;padding:2px 8px;background:rgba(255,101,132,0.2);border-radius:100px;font-size:0.68rem;color:var(--accent2);font-weight:600;}
+.nav-badge.green{background:rgba(67,233,123,0.15);color:var(--accent3);}
+.sidebar-bottom{padding:16px 12px;border-top:1px solid var(--border);}
+.logout-btn{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;color:var(--muted);font-size:0.88rem;font-weight:500;cursor:none;background:none;border:none;width:100%;transition:all 0.25s;font-family:'DM Sans',sans-serif;}
+.logout-btn:hover{background:rgba(255,255,255,0.05);color:var(--text);}
+
+/* ===== MAIN ===== */
+.main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;display:flex;flex-direction:column;}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(3,3,10,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 36px;height:68px;display:flex;align-items:center;gap:20px;animation:slideDown 0.6s cubic-bezier(0.16,1,0.3,1) both;}
+@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+.topbar-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;letter-spacing:-0.3px;}
+.topbar-sub{font-size:0.78rem;color:var(--muted);margin-top:1px;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:14px;}
+.search-box{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px 14px;width:220px;transition:all 0.3s;}
+.search-box:focus-within{border-color:var(--accent);background:rgba(108,99,255,0.08);}
+.search-box input{background:none;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.85rem;width:100%;caret-color:var(--accent);}
+.search-box input::placeholder{color:var(--muted);}
+
+/* Tab bar */
+.tab-bar{display:flex;gap:4px;padding:20px 36px 0;border-bottom:1px solid var(--border);background:var(--bg);}
+.tab-btn{padding:10px 20px;border-radius:10px 10px 0 0;font-family:'DM Sans',sans-serif;font-size:0.85rem;font-weight:600;color:var(--muted);background:none;border:none;cursor:none;transition:all 0.25s;position:relative;display:flex;align-items:center;gap:8px;}
+.tab-btn::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--accent2);transform:scaleX(0);transition:transform 0.3s;}
+.tab-btn.active{color:var(--text);background:rgba(255,101,132,0.08);}
+.tab-btn.active::after{transform:scaleX(1);}
+.tab-btn:hover{color:var(--text);}
+.tab-count{padding:2px 7px;border-radius:100px;font-size:0.68rem;background:rgba(255,101,132,0.2);color:var(--accent2);}
+
+/* Content */
+.content{padding:28px 36px;flex:1;}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-bottom:24px;}
+.stat-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;transition:all 0.35s cubic-bezier(0.16,1,0.3,1);animation:fadeUp 0.6s both;position:relative;overflow:hidden;}
+.stat-card:nth-child(1){animation-delay:0.1s} .stat-card:nth-child(2){animation-delay:0.15s} .stat-card:nth-child(3){animation-delay:0.2s} .stat-card:nth-child(4){animation-delay:0.25s} .stat-card:nth-child(5){animation-delay:0.3s}
+.stat-card:hover{transform:translateY(-4px);box-shadow:0 16px 40px rgba(0,0,0,0.4);border-color:rgba(108,99,255,0.3);}
+.stat-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.stat-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;}
+.s1{background:rgba(108,99,255,0.15);} .s2{background:rgba(67,233,123,0.15);} .s3{background:rgba(255,101,132,0.15);} .s4{background:rgba(247,201,72,0.15);} .s5{background:rgba(0,210,255,0.15);}
+.stat-value{font-family:'Syne',sans-serif;font-weight:800;font-size:1.6rem;letter-spacing:-1px;margin-bottom:3px;}
+.stat-label{font-size:0.75rem;color:var(--muted);}
+.stat-trend{font-size:0.68rem;font-weight:600;padding:2px 7px;border-radius:100px;}
+.trend-up{background:rgba(67,233,123,0.12);color:var(--accent3);}
+.trend-down{background:rgba(255,101,132,0.12);color:var(--accent2);}
+
+/* Panel layout */
+.panel-grid{display:grid;grid-template-columns:1fr 320px;gap:20px;}
+.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:22px;animation:fadeUp 0.6s both;}
+
+/* Table */
+.table-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.table-title{font-family:'Syne',sans-serif;font-weight:700;font-size:0.95rem;}
+.table-actions{display:flex;gap:10px;align-items:center;}
+.filter-btn{padding:7px 14px;border-radius:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.78rem;cursor:none;transition:all 0.2s;}
+.filter-btn.active,.filter-btn:hover{background:rgba(108,99,255,0.12);border-color:var(--accent);color:var(--text);}
+.add-btn{padding:7px 16px;border-radius:8px;background:var(--accent);border:none;color:white;font-family:'DM Sans',sans-serif;font-size:0.78rem;font-weight:600;cursor:none;transition:all 0.25s;display:flex;align-items:center;gap:6px;}
+.add-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(108,99,255,0.4);}
+
+table{width:100%;border-collapse:collapse;}
+thead th{padding:10px 14px;text-align:left;font-size:0.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.8px;border-bottom:1px solid var(--border);}
+tbody tr{transition:background 0.2s;cursor:none;}
+tbody tr:hover{background:rgba(255,255,255,0.03);}
+tbody td{padding:13px 14px;font-size:0.83rem;border-bottom:1px solid rgba(255,255,255,0.04);}
+tbody tr:last-child td{border-bottom:none;}
+.td-user{display:flex;align-items:center;gap:10px;}
+.td-avatar{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:0.8rem;font-weight:700;font-family:'Syne',sans-serif;flex-shrink:0;}
+.av-p{background:rgba(108,99,255,0.2);color:var(--accent);}
+.av-g{background:rgba(67,233,123,0.2);color:var(--accent3);}
+.av-r{background:rgba(255,101,132,0.2);color:var(--accent2);}
+.av-y{background:rgba(247,201,72,0.2);color:var(--gold);}
+.av-c{background:rgba(0,210,255,0.2);color:var(--cyan);}
+.td-name{font-weight:600;font-size:0.83rem;}
+.td-sub{font-size:0.7rem;color:var(--muted);}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:100px;font-size:0.7rem;font-weight:600;}
+.b-approved{background:rgba(67,233,123,0.12);color:var(--accent3);}
+.b-pending{background:rgba(247,201,72,0.12);color:var(--gold);}
+.b-rejected{background:rgba(255,101,132,0.12);color:var(--accent2);}
+.b-head{background:rgba(255,101,132,0.12);color:var(--accent2);}
+.b-student{background:rgba(108,99,255,0.12);color:var(--accent);}
+.b-admin{background:rgba(0,210,255,0.12);color:var(--cyan);}
+.badge-dot{width:5px;height:5px;border-radius:50%;background:currentColor;}
+
+/* Action buttons */
+.action-btns{display:flex;gap:6px;}
+.act-btn{width:28px;height:28px;border-radius:7px;border:none;display:flex;align-items:center;justify-content:center;font-size:0.8rem;cursor:none;transition:all 0.2s;}
+.act-approve{background:rgba(67,233,123,0.12);color:var(--accent3);}
+.act-approve:hover{background:rgba(67,233,123,0.25);}
+.act-reject{background:rgba(255,101,132,0.12);color:var(--accent2);}
+.act-reject:hover{background:rgba(255,101,132,0.25);}
+.act-view{background:rgba(108,99,255,0.12);color:var(--accent);}
+.act-view:hover{background:rgba(108,99,255,0.25);}
+.act-edit{background:rgba(247,201,72,0.12);color:var(--gold);}
+.act-edit:hover{background:rgba(247,201,72,0.25);}
+.act-del{background:rgba(255,101,132,0.12);color:var(--accent2);}
+.act-del:hover{background:rgba(255,101,132,0.25);}
+
+/* Right column */
+.right-col{display:flex;flex-direction:column;gap:16px;}
+
+/* Donut chart */
+.donut-wrap{display:flex;align-items:center;justify-content:center;margin:16px 0;}
+.donut{position:relative;width:140px;height:140px;}
+.donut svg{transform:rotate(-90deg);}
+.donut-label{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:'Syne',sans-serif;}
+.donut-num{font-weight:800;font-size:1.6rem;letter-spacing:-1px;}
+.donut-sub{font-size:0.65rem;color:var(--muted);}
+.donut-legend{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.legend-item{display:flex;align-items:center;justify-content:space-between;font-size:0.78rem;}
+.legend-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.legend-label{color:var(--muted);flex:1;margin-left:8px;}
+.legend-val{font-weight:600;}
+
+/* Pending approvals */
+.approval-item{display:flex;gap:12px;padding:12px;background:rgba(255,255,255,0.03);border-radius:12px;border:1px solid rgba(255,255,255,0.06);margin-bottom:10px;transition:all 0.25s;}
+.approval-item:hover{border-color:var(--border);background:rgba(108,99,255,0.06);}
+.approval-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;}
+.approval-info{flex:1;}
+.approval-name{font-weight:600;font-size:0.83rem;margin-bottom:2px;}
+.approval-meta{font-size:0.72rem;color:var(--muted);}
+.approval-btns{display:flex;flex-direction:column;gap:5px;}
+.app-yes{padding:4px 10px;background:rgba(67,233,123,0.12);border:1px solid rgba(67,233,123,0.2);border-radius:6px;color:var(--accent3);font-size:0.7rem;font-weight:600;cursor:none;transition:all 0.2s;}
+.app-yes:hover{background:rgba(67,233,123,0.25);}
+.app-no{padding:4px 10px;background:rgba(255,101,132,0.12);border:1px solid rgba(255,101,132,0.2);border-radius:6px;color:var(--accent2);font-size:0.7rem;font-weight:600;cursor:none;transition:all 0.2s;}
+.app-no:hover{background:rgba(255,101,132,0.25);}
+
+/* System health */
+.health-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.health-item:last-child{border-bottom:none;}
+.health-label{font-size:0.78rem;flex:1;}
+.health-bar-wrap{width:90px;height:5px;background:rgba(255,255,255,0.08);border-radius:10px;overflow:hidden;}
+.health-bar{height:100%;border-radius:10px;transition:width 1.5s cubic-bezier(0.16,1,0.3,1);}
+.health-val{font-size:0.75rem;font-weight:600;width:36px;text-align:right;}
+
+/* Modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.7);backdrop-filter:blur(8px);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:32px;width:460px;max-width:90vw;transform:scale(0.9) translateY(20px);transition:all 0.3s cubic-bezier(0.16,1,0.3,1);}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;margin-bottom:6px;}
+.modal-sub{color:var(--muted);font-size:0.83rem;margin-bottom:24px;}
+.modal-field{margin-bottom:16px;}
+.modal-field label{display:block;font-size:0.75rem;font-weight:600;color:var(--muted);margin-bottom:7px;text-transform:uppercase;letter-spacing:0.3px;}
+.modal-input{width:100%;padding:11px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:10px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;transition:all 0.3s;}
+.modal-input:focus{border-color:var(--accent);background:rgba(108,99,255,0.06);box-shadow:0 0 0 3px rgba(108,99,255,0.1);}
+.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.modal-btns{display:flex;gap:10px;margin-top:24px;}
+.modal-cancel{flex:1;padding:11px;border-radius:10px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.88rem;cursor:none;transition:all 0.2s;}
+.modal-cancel:hover{color:var(--text);}
+.modal-confirm{flex:1;padding:11px;border-radius:10px;background:var(--accent);border:none;color:white;font-family:'Syne',sans-serif;font-weight:700;font-size:0.88rem;cursor:none;transition:all 0.25s;}
+.modal-confirm:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(108,99,255,0.4);}
+
+/* Toast */
+.toast{position:fixed;bottom:32px;right:32px;padding:14px 20px;border-radius:14px;display:flex;align-items:center;gap:10px;font-size:0.85rem;z-index:1000;transform:translateY(100px);opacity:0;transition:all 0.5s cubic-bezier(0.16,1,0.3,1);}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast-success{background:rgba(67,233,123,0.15);border:1px solid rgba(67,233,123,0.3);color:var(--accent3);}
+.toast-error{background:rgba(255,101,132,0.15);border:1px solid rgba(255,101,132,0.3);color:var(--accent2);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:1100px){.stats-row{grid-template-columns:repeat(3,1fr);}.panel-grid{grid-template-columns:1fr;}}
+@media(max-width:768px){.main{margin-left:0;}.sidebar{display:none;}.content{padding:16px;}.topbar{padding:0 16px;}.tab-bar{padding:16px 16px 0;overflow-x:auto;}.stats-row{grid-template-columns:repeat(2,1fr);}}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">⚡</div>
+    <div class="brand-text">SRMIST Portal <span>Club Management System</span></div>
+  </div>
+  <div class="admin-badge">⚙️ Admin Mode</div>
+  <div class="sidebar-user">
+    <div class="user-avatar">A</div>
+    <div class="user-info"><strong>Admin</strong><span>● Super Admin</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Admin</div>
+    <a href="admin.html" class="nav-item active"><span class="nav-icon">⚙️</span> Admin Panel</a>
+    <a href="dashboard.html" class="nav-item"><span class="nav-icon">🏠</span> Dashboard</a>
+    <a href="#" class="nav-item"><span class="nav-icon">👥</span> All Users <span class="nav-badge">248</span></a>
+    <a href="#" class="nav-item"><span class="nav-icon">📋</span> All Bookings <span class="nav-badge" style="background:rgba(247,201,72,0.15);color:var(--gold)">5 Pending</span></a>
+    <a href="venues.html" class="nav-item"><span class="nav-icon">🏛️</span> Venues</a>
+    <a href="#" class="nav-item"><span class="nav-icon">🎉</span> Events</a>
+    <div class="nav-section-label">System</div>
+    <a href="#" class="nav-item"><span class="nav-icon">📊</span> Analytics</a>
+    <a href="#" class="nav-item"><span class="nav-icon">🔐</span> Permissions</a>
+    <a href="#" class="nav-item"><span class="nav-icon">🗄️</span> Database</a>
+    <a href="#" class="nav-item"><span class="nav-icon">📝</span> Logs</a>
+  </nav>
+  <div class="sidebar-bottom">
+    <button class="logout-btn" onclick="window.location.href='login.html'"><span>🚪</span> Logout</button>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Admin Panel ⚙️</div>
+      <div class="topbar-sub">Full system control — SRMIST Club Portal</div>
+    </div>
+    <div class="topbar-right">
+      <div class="search-box">
+        <span style="color:var(--muted);font-size:0.9rem">🔍</span>
+        <input type="text" placeholder="Search users, bookings...">
+      </div>
+      <button class="add-btn" onclick="openModal('addUser')">➕ Add User</button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tab-bar">
+    <button class="tab-btn active" onclick="switchTab('bookings',this)">📋 Bookings <span class="tab-count">14</span></button>
+    <button class="tab-btn" onclick="switchTab('users',this)">👥 Users <span class="tab-count">248</span></button>
+    <button class="tab-btn" onclick="switchTab('clubs',this)">🏆 Clubs <span class="tab-count">50</span></button>
+    <button class="tab-btn" onclick="switchTab('venues',this)">🏛️ Venues <span class="tab-count">6</span></button>
+    <button class="tab-btn" onclick="switchTab('events',this)">🎉 Events <span class="tab-count">12</span></button>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Stats row -->
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-top"><div class="stat-icon s1">👥</div><span class="stat-trend trend-up">↑ 28</span></div>
+        <div class="stat-value" data-target="248">0</div>
+        <div class="stat-label">Total Users</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top"><div class="stat-icon s2">✅</div><span class="stat-trend trend-up">↑ 3</span></div>
+        <div class="stat-value" data-target="9">0</div>
+        <div class="stat-label">Approved Today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top"><div class="stat-icon s3">⏳</div><span class="stat-trend trend-down">Action needed</span></div>
+        <div class="stat-value" data-target="5">0</div>
+        <div class="stat-label">Pending Approvals</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top"><div class="stat-icon s4">🏆</div><span class="stat-trend trend-up">↑ 2 new</span></div>
+        <div class="stat-value" data-target="50">0</div>
+        <div class="stat-label">Active Clubs</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-top"><div class="stat-icon s5">🎉</div><span class="stat-trend trend-up">This month</span></div>
+        <div class="stat-value" data-target="12">0</div>
+        <div class="stat-label">Upcoming Events</div>
+      </div>
+    </div>
+
+    <!-- Panel grid -->
+    <div class="panel-grid">
+
+      <!-- Left: Tables -->
+      <div>
+
+        <!-- Bookings tab -->
+        <div class="card" id="tab-bookings" style="animation-delay:0.2s">
+          <div class="table-header">
+            <div class="table-title">📋 Venue Bookings</div>
+            <div class="table-actions">
+              <button class="filter-btn active" onclick="filterTable('all',this)">All</button>
+              <button class="filter-btn" onclick="filterTable('pending',this)">Pending</button>
+              <button class="filter-btn" onclick="filterTable('approved',this)">Approved</button>
+            </div>
+          </div>
+          <table id="bookingsTable">
+            <thead><tr>
+              <th>Club / User</th><th>Venue</th><th>Date</th><th>Purpose</th><th>Status</th><th>Actions</th>
+            </tr></thead>
+            <tbody>
+              <tr data-status="pending">
+                <td><div class="td-user"><div class="td-avatar av-p">S</div><div><div class="td-name">Sriram</div><div class="td-sub">IEEE Club</div></div></div></td>
+                <td>Faraday Hall</td><td>Mar 15</td><td>Workshop</td>
+                <td><span class="badge b-pending"><span class="badge-dot"></span>Pending</span></td>
+                <td><div class="action-btns"><button class="act-btn act-approve" onclick="approveRow(this)" title="Approve">✓</button><button class="act-btn act-reject" onclick="rejectRow(this)" title="Reject">✗</button><button class="act-btn act-view" title="View">👁</button></div></td>
+              </tr>
+              <tr data-status="approved">
+                <td><div class="td-user"><div class="td-avatar av-g">P</div><div><div class="td-name">Priya</div><div class="td-sub">Cultural Club</div></div></div></td>
+                <td>Mini Hall - 1</td><td>Mar 12</td><td>Cultural Fest</td>
+                <td><span class="badge b-approved"><span class="badge-dot"></span>Approved</span></td>
+                <td><div class="action-btns"><button class="act-btn act-view" title="View">👁</button><button class="act-btn act-edit" title="Edit">✏️</button></div></td>
+              </tr>
+              <tr data-status="pending">
+                <td><div class="td-user"><div class="td-avatar av-r">R</div><div><div class="td-name">Rahul</div><div class="td-sub">Sports Club</div></div></div></td>
+                <td>Main Auditorium</td><td>Mar 20</td><td>Sports Meet</td>
+                <td><span class="badge b-pending"><span class="badge-dot"></span>Pending</span></td>
+                <td><div class="action-btns"><button class="act-btn act-approve" onclick="approveRow(this)" title="Approve">✓</button><button class="act-btn act-reject" onclick="rejectRow(this)" title="Reject">✗</button><button class="act-btn act-view" title="View">👁</button></div></td>
+              </tr>
+              <tr data-status="approved">
+                <td><div class="td-user"><div class="td-avatar av-y">A</div><div><div class="td-name">Ananya</div><div class="td-sub">Coding Club</div></div></div></td>
+                <td>J.C. Bose Hall</td><td>Mar 8</td><td>Hackathon</td>
+                <td><span class="badge b-approved"><span class="badge-dot"></span>Approved</span></td>
+                <td><div class="action-btns"><button class="act-btn act-view" title="View">👁</button><button class="act-btn act-edit" title="Edit">✏️</button></div></td>
+              </tr>
+              <tr data-status="rejected">
+                <td><div class="td-user"><div class="td-avatar av-c">K</div><div><div class="td-name">Kiran</div><div class="td-sub">Music Club</div></div></div></td>
+                <td>Hippocrates Aud.</td><td>Mar 10</td><td>Concert</td>
+                <td><span class="badge b-rejected"><span class="badge-dot"></span>Rejected</span></td>
+                <td><div class="action-btns"><button class="act-btn act-view" title="View">👁</button><button class="act-btn act-del" title="Delete">🗑</button></div></td>
+              </tr>
+              <tr data-status="pending">
+                <td><div class="td-user"><div class="td-avatar av-p">D</div><div><div class="td-name">Divya</div><div class="td-sub">Dance Club</div></div></div></td>
+                <td>G.D. Naidu Hall</td><td>Mar 22</td><td>Dance Show</td>
+                <td><span class="badge b-pending"><span class="badge-dot"></span>Pending</span></td>
+                <td><div class="action-btns"><button class="act-btn act-approve" onclick="approveRow(this)" title="Approve">✓</button><button class="act-btn act-reject" onclick="rejectRow(this)" title="Reject">✗</button><button class="act-btn act-view" title="View">👁</button></div></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Users tab (hidden) -->
+        <div class="card" id="tab-users" style="display:none;animation-delay:0.2s">
+          <div class="table-header">
+            <div class="table-title">👥 All Users</div>
+            <div class="table-actions">
+              <button class="add-btn" onclick="openModal('addUser')">➕ Add User</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>User</th><th>Email</th><th>Role</th><th>Club</th><th>Joined</th><th>Actions</th></tr></thead>
+            <tbody>
+              <tr><td><div class="td-user"><div class="td-avatar av-p">S</div><div><div class="td-name">Sriram</div></div></div></td><td style="color:var(--muted);font-size:0.78rem">sr1234@srmist.edu.in</td><td><span class="badge b-head">Club Head</span></td><td>IEEE</td><td style="color:var(--muted);font-size:0.78rem">Jan 2024</td><td><div class="action-btns"><button class="act-btn act-edit" title="Edit">✏️</button><button class="act-btn act-del" title="Delete">🗑</button></div></td></tr>
+              <tr><td><div class="td-user"><div class="td-avatar av-g">P</div><div><div class="td-name">Priya</div></div></div></td><td style="color:var(--muted);font-size:0.78rem">pr5678@srmist.edu.in</td><td><span class="badge b-student">Student</span></td><td>Cultural</td><td style="color:var(--muted);font-size:0.78rem">Feb 2024</td><td><div class="action-btns"><button class="act-btn act-edit" title="Edit">✏️</button><button class="act-btn act-del" title="Delete">🗑</button></div></td></tr>
+              <tr><td><div class="td-user"><div class="td-avatar av-r">R</div><div><div class="td-name">Rahul</div></div></div></td><td style="color:var(--muted);font-size:0.78rem">rk9012@srmist.edu.in</td><td><span class="badge b-head">Club Head</span></td><td>Sports</td><td style="color:var(--muted);font-size:0.78rem">Jan 2024</td><td><div class="action-btns"><button class="act-btn act-edit" title="Edit">✏️</button><button class="act-btn act-del" title="Delete">🗑</button></div></td></tr>
+              <tr><td><div class="td-user"><div class="td-avatar av-y">A</div><div><div class="td-name">Ananya</div></div></div></td><td style="color:var(--muted);font-size:0.78rem">an3456@srmist.edu.in</td><td><span class="badge b-admin">Admin</span></td><td>Coding</td><td style="color:var(--muted);font-size:0.78rem">Dec 2023</td><td><div class="action-btns"><button class="act-btn act-edit" title="Edit">✏️</button><button class="act-btn act-del" title="Delete">🗑</button></div></td></tr>
+              <tr><td><div class="td-user"><div class="td-avatar av-c">K</div><div><div class="td-name">Kiran</div></div></div></td><td style="color:var(--muted);font-size:0.78rem">ki7890@srmist.edu.in</td><td><span class="badge b-student">Student</span></td><td>Music</td><td style="color:var(--muted);font-size:0.78rem">Mar 2024</td><td><div class="action-btns"><button class="act-btn act-edit" title="Edit">✏️</button><button class="act-btn act-del" title="Delete">🗑</button></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Clubs tab -->
+        <div class="card" id="tab-clubs" style="display:none;animation-delay:0.2s">
+          <div class="table-header"><div class="table-title">🏆 All Clubs</div><button class="add-btn" onclick="openModal('addClub')">➕ Add Club</button></div>
+          <table><thead><tr><th>Club</th><th>Head</th><th>Members</th><th>Events</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr><td><div class="td-user"><div class="td-avatar av-c">⚡</div><div class="td-name">IEEE Club</div></div></td><td>Sriram</td><td>45</td><td>8</td><td><span class="badge b-approved">Active</span></td><td><div class="action-btns"><button class="act-btn act-view">👁</button><button class="act-btn act-edit">✏️</button><button class="act-btn act-del">🗑</button></div></td></tr>
+            <tr><td><div class="td-user"><div class="td-avatar av-y">🎭</div><div class="td-name">Cultural Club</div></div></td><td>Priya</td><td>62</td><td>5</td><td><span class="badge b-approved">Active</span></td><td><div class="action-btns"><button class="act-btn act-view">👁</button><button class="act-btn act-edit">✏️</button><button class="act-btn act-del">🗑</button></div></td></tr>
+            <tr><td><div class="td-user"><div class="td-avatar av-g">⚽</div><div class="td-name">Sports Club</div></div></td><td>Rahul</td><td>89</td><td>12</td><td><span class="badge b-approved">Active</span></td><td><div class="action-btns"><button class="act-btn act-view">👁</button><button class="act-btn act-edit">✏️</button><button class="act-btn act-del">🗑</button></div></td></tr>
+            <tr><td><div class="td-user"><div class="td-avatar av-p">💻</div><div class="td-name">Coding Club</div></div></td><td>Ananya</td><td>52</td><td>6</td><td><span class="badge b-pending">Pending</span></td><td><div class="action-btns"><button class="act-btn act-approve" onclick="approveRow(this)">✓</button><button class="act-btn act-reject" onclick="rejectRow(this)">✗</button><button class="act-btn act-view">👁</button></div></td></tr>
+          </tbody></table>
+        </div>
+
+        <!-- Venues tab -->
+        <div class="card" id="tab-venues" style="display:none;animation-delay:0.2s">
+          <div class="table-header"><div class="table-title">🏛️ Manage Venues</div><button class="add-btn" onclick="openModal('addVenue')">➕ Add Venue</button></div>
+          <table><thead><tr><th>Venue</th><th>Capacity</th><th>Status</th><th>Bookings</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr><td><div class="td-user"><span style="font-size:1.2rem;margin-right:8px">🏟️</span><div class="td-name">Main Auditorium</div></div></td><td>2,000</td><td><span class="badge b-rejected">Occupied</span></td><td>12 total</td><td><div class="action-btns"><button class="act-btn act-view">👁</button><button class="act-btn act-edit">✏️</button></div></td></tr>
+            <tr><td><div class="td-user"><span style="font-size:1.2rem;margin-right:8px">🎭</span><div class="td-name">Mini Hall - 1</div></div></td><td>500</td><td><span class="badge b-approved">Available</span></td><td>8 total</td><td><div class="action-btns"><button class="act-btn act-view">👁</button><button class="act-btn act-edit">✏️</button></div></td></tr>
+            <tr><td><div class="td-user"><span style="font-size:1.2rem;margin-right:8px">🔬</span><div class="td-name">J.C. Bose Hall</div></div></td><td>800</td><td><span class="badge b-approved">Available</span></td><td>5 total</td><td><div class="action-btns"><button class="act-btn act-view">👁</button><button class="act-btn act-edit">✏️</button></div></td></tr>
+            <tr><td><div class="td-user"><span style="font-size:1.2rem;margin-right:8px">⚡</span><div class="td-name">Faraday Hall</div></div></td><td>600</td><td><span class="badge b-approved">Available</span></td><td>7 total</td><td><div class="action-btns"><button class="act-btn act-view">👁</button><button class="act-btn act-edit">✏️</button></div></td></tr>
+            <tr><td><div class="td-user"><span style="font-size:1.2rem;margin-right:8px">🏗️</span><div class="td-name">G.D. Naidu Hall</div></div></td><td>1,000</td><td><span class="badge b-rejected">Occupied</span></td><td>9 total</td><td><div class="action-btns"><button class="act-btn act-view">👁</button><button class="act-btn act-edit">✏️</button></div></td></tr>
+            <tr><td><div class="td-user"><span style="font-size:1.2rem;margin-right:8px">🏥</span><div class="td-name">Hippocrates Aud.</div></div></td><td>1,200</td><td><span class="badge b-rejected">Occupied</span></td><td>11 total</td><td><div class="action-btns"><button class="act-btn act-view">👁</button><button class="act-btn act-edit">✏️</button></div></td></tr>
+          </tbody></table>
+        </div>
+
+        <!-- Events tab -->
+        <div class="card" id="tab-events" style="display:none;animation-delay:0.2s">
+          <div class="table-header"><div class="table-title">🎉 All Events</div><button class="add-btn">➕ Add Event</button></div>
+          <table><thead><tr><th>Event</th><th>Club</th><th>Venue</th><th>Date</th><th>RSVPs</th><th>Actions</th></tr></thead>
+          <tbody>
+            <tr><td><div class="td-name">Hackathon 2026</div></td><td>Coding Club</td><td>Main Aud.</td><td>Mar 8</td><td>128</td><td><div class="action-btns"><button class="act-btn act-view">👁</button><button class="act-btn act-edit">✏️</button><button class="act-btn act-del">🗑</button></div></td></tr>
+            <tr><td><div class="td-name">Cultural Fest</div></td><td>Cultural Club</td><td>Mini Hall 1</td><td>Mar 12</td><td>200</td><td><div class="action-btns"><button class="act-btn act-view">👁</button><button class="act-btn act-edit">✏️</button><button class="act-btn act-del">🗑</button></div></td></tr>
+            <tr><td><div class="td-name">Web Dev Workshop</div></td><td>IEEE</td><td>J.C. Bose</td><td>Mar 15</td><td>64</td><td><div class="action-btns"><button class="act-btn act-view">👁</button><button class="act-btn act-edit">✏️</button><button class="act-btn act-del">🗑</button></div></td></tr>
+            <tr><td><div class="td-name">Sports Meet</div></td><td>Sports Club</td><td>Faraday</td><td>Mar 20</td><td>312</td><td><div class="action-btns"><button class="act-btn act-view">👁</button><button class="act-btn act-edit">✏️</button><button class="act-btn act-del">🗑</button></div></td></tr>
+          </tbody></table>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div class="right-col">
+
+        <!-- Donut chart -->
+        <div class="card" style="animation-delay:0.25s">
+          <div class="table-title">🏛️ Venue Usage</div>
+          <div class="donut-wrap">
+            <div class="donut">
+              <svg width="140" height="140" viewBox="0 0 140 140">
+                <circle cx="70" cy="70" r="54" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="16"/>
+                <circle cx="70" cy="70" r="54" fill="none" stroke="#6c63ff" stroke-width="16" stroke-dasharray="339" stroke-dashoffset="339" id="d1" style="transition:stroke-dashoffset 1.5s cubic-bezier(0.16,1,0.3,1)"/>
+                <circle cx="70" cy="70" r="54" fill="none" stroke="#ff6584" stroke-width="16" stroke-dasharray="339" stroke-dashoffset="339" id="d2" style="transition:stroke-dashoffset 1.5s 0.2s cubic-bezier(0.16,1,0.3,1)"/>
+                <circle cx="70" cy="70" r="54" fill="none" stroke="#43e97b" stroke-width="16" stroke-dasharray="339" stroke-dashoffset="339" id="d3" style="transition:stroke-dashoffset 1.5s 0.4s cubic-bezier(0.16,1,0.3,1)"/>
+              </svg>
+              <div class="donut-label"><div class="donut-num">32</div><div class="donut-sub">Bookings</div></div>
+            </div>
+          </div>
+          <div class="donut-legend">
+            <div class="legend-item"><div class="legend-dot" style="background:var(--accent)"></div><span class="legend-label">Main Aud.</span><span class="legend-val" style="color:var(--accent)">12</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div><span class="legend-label">Mini Hall</span><span class="legend-val" style="color:var(--accent2)">8</span></div>
+            <div class="legend-item"><div class="legend-dot" style="background:var(--accent3)"></div><span class="legend-label">Others</span><span class="legend-val" style="color:var(--accent3)">12</span></div>
+          </div>
+        </div>
+
+        <!-- Pending approvals -->
+        <div class="card" style="animation-delay:0.3s">
+          <div class="table-title" style="margin-bottom:14px">⏳ Pending Approvals</div>
+          <div id="approvalsList">
+            <div class="approval-item">
+              <div class="approval-icon" style="background:rgba(108,99,255,0.15)">🏛️</div>
+              <div class="approval-info">
+                <div class="approval-name">Faraday Hall</div>
+                <div class="approval-meta">Sriram · Mar 15 · Workshop</div>
+              </div>
+              <div class="approval-btns">
+                <button class="app-yes" onclick="quickApprove(this)">✓ Yes</button>
+                <button class="app-no" onclick="quickReject(this)">✗ No</button>
+              </div>
+            </div>
+            <div class="approval-item">
+              <div class="approval-icon" style="background:rgba(255,101,132,0.15)">🏟️</div>
+              <div class="approval-info">
+                <div class="approval-name">Main Auditorium</div>
+                <div class="approval-meta">Rahul · Mar 20 · Sports</div>
+              </div>
+              <div class="approval-btns">
+                <button class="app-yes" onclick="quickApprove(this)">✓ Yes</button>
+                <button class="app-no" onclick="quickReject(this)">✗ No</button>
+              </div>
+            </div>
+            <div class="approval-item">
+              <div class="approval-icon" style="background:rgba(247,201,72,0.15)">🏗️</div>
+              <div class="approval-info">
+                <div class="approval-name">G.D. Naidu Hall</div>
+                <div class="approval-meta">Divya · Mar 22 · Dance</div>
+              </div>
+              <div class="approval-btns">
+                <button class="app-yes" onclick="quickApprove(this)">✓ Yes</button>
+                <button class="app-no" onclick="quickReject(this)">✗ No</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System health -->
+        <div class="card" style="animation-delay:0.35s">
+          <div class="table-title" style="margin-bottom:14px">🖥️ System Health</div>
+          <div class="health-item">
+            <div class="health-label">Database</div>
+            <div class="health-bar-wrap"><div class="health-bar" id="hb1" style="width:0%;background:var(--accent3)"></div></div>
+            <div class="health-val" style="color:var(--accent3)">98%</div>
+          </div>
+          <div class="health-item">
+            <div class="health-label">API Server</div>
+            <div class="health-bar-wrap"><div class="health-bar" id="hb2" style="width:0%;background:var(--accent3)"></div></div>
+            <div class="health-val" style="color:var(--accent3)">95%</div>
+          </div>
+          <div class="health-item">
+            <div class="health-label">Storage</div>
+            <div class="health-bar-wrap"><div class="health-bar" id="hb3" style="width:0%;background:var(--gold)"></div></div>
+            <div class="health-val" style="color:var(--gold)">67%</div>
+          </div>
+          <div class="health-item">
+            <div class="health-label">Auth Service</div>
+            <div class="health-bar-wrap"><div class="health-bar" id="hb4" style="width:0%;background:var(--accent3)"></div></div>
+            <div class="health-val" style="color:var(--accent3)">100%</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Add User Modal -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-title" id="modalTitle">➕ Add New User</div>
+    <div class="modal-sub" id="modalSub">Fill in the details to create a new account.</div>
+    <div class="modal-row">
+      <div class="modal-field"><label>First Name</label><input class="modal-input" placeholder="First name"></div>
+      <div class="modal-field"><label>Last Name</label><input class="modal-input" placeholder="Last name"></div>
+    </div>
+    <div class="modal-field"><label>Email</label><input class="modal-input" type="email" placeholder="user@srmist.edu.in"></div>
+    <div class="modal-field"><label>Role</label>
+      <select class="modal-input">
+        <option>Student</option><option>Club Head</option><option>Admin</option>
+      </select>
+    </div>
+    <div class="modal-field"><label>Department</label>
+      <select class="modal-input">
+        <option>Computer Science</option><option>Electronics</option><option>Mechanical</option><option>Civil</option>
+      </select>
+    </div>
+    <div class="modal-btns">
+      <button class="modal-cancel" onclick="closeModalDirect()">Cancel</button>
+      <button class="modal-confirm" onclick="confirmModal()">Create User →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// Cursor
+const cursor=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+function animateCursor(){cursor.style.left=mx-5+'px';cursor.style.top=my-5+'px';rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;ring.style.left=rx-16+'px';ring.style.top=ry-16+'px';requestAnimationFrame(animateCursor);}
+animateCursor();
+document.querySelectorAll('a,button,input,select').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ring.style.width='48px';ring.style.height='48px';ring.style.borderColor='rgba(108,99,255,0.8)';cursor.style.transform='scale(0.4)';});
+  el.addEventListener('mouseleave',()=>{ring.style.width='32px';ring.style.height='32px';ring.style.borderColor='rgba(108,99,255,0.5)';cursor.style.transform='scale(1)';});
+});
+
+// Counters
+function animateCounter(el,target,duration=1200){
+  let start=null;
+  function step(ts){if(!start)start=ts;const p=Math.min((ts-start)/duration,1),e=1-Math.pow(1-p,4);el.textContent=Math.floor(e*target);if(p<1)requestAnimationFrame(step);else el.textContent=target;}
+  requestAnimationFrame(step);
+}
+setTimeout(()=>document.querySelectorAll('.stat-value[data-target]').forEach(el=>animateCounter(el,+el.dataset.target)),300);
+
+// Health bars
+setTimeout(()=>{
+  document.getElementById('hb1').style.width='98%';
+  document.getElementById('hb2').style.width='95%';
+  document.getElementById('hb3').style.width='67%';
+  document.getElementById('hb4').style.width='100%';
+},600);
+
+// Donut animation
+setTimeout(()=>{
+  // d1: 12/32 = 37.5% of 339 = 127
+  document.getElementById('d1').style.strokeDashoffset = 339 - 127;
+  // d2: starts after d1 — offset by d1 portion
+  document.getElementById('d2').style.strokeDasharray = '85 339';
+  document.getElementById('d2').style.strokeDashoffset = 339 - 127;
+  // d3: rest
+  document.getElementById('d3').style.strokeDasharray = '127 339';
+  document.getElementById('d3').style.strokeDashoffset = 339 - 127 - 85;
+},500);
+
+// Tab switching
+function switchTab(tab, btn){
+  document.querySelectorAll('[id^=tab-]').forEach(t=>t.style.display='none');
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+tab).style.display='block';
+  btn.classList.add('active');
+}
+
+// Filter
+function filterTable(status, btn){
+  document.querySelectorAll('.filter-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('#bookingsTable tbody tr').forEach(tr=>{
+    tr.style.display = (status==='all'||tr.dataset.status===status)?'':'none';
+  });
+}
+
+// Approve/Reject row
+function approveRow(btn){
+  const td=btn.closest('tr').querySelector('td:nth-child(5)');
+  td.innerHTML='<span class="badge b-approved"><span class="badge-dot"></span>Approved</span>';
+  btn.closest('tr').dataset.status='approved';
+  const actions=btn.closest('.action-btns');
+  actions.innerHTML='<button class="act-btn act-view" title="View">👁</button><button class="act-btn act-edit" title="Edit">✏️</button>';
+  showToast('✅ Booking approved!','success');
+}
+function rejectRow(btn){
+  const td=btn.closest('tr').querySelector('td:nth-child(5)');
+  td.innerHTML='<span class="badge b-rejected"><span class="badge-dot"></span>Rejected</span>';
+  btn.closest('tr').dataset.status='rejected';
+  const actions=btn.closest('.action-btns');
+  actions.innerHTML='<button class="act-btn act-view" title="View">👁</button><button class="act-btn act-del" title="Delete">🗑</button>';
+  showToast('❌ Booking rejected.','error');
+}
+
+// Quick approve/reject
+function quickApprove(btn){
+  const item=btn.closest('.approval-item');
+  item.style.transition='all 0.4s'; item.style.opacity='0'; item.style.transform='translateX(20px)';
+  setTimeout(()=>item.remove(),400);
+  showToast('✅ Approved!','success');
+}
+function quickReject(btn){
+  const item=btn.closest('.approval-item');
+  item.style.transition='all 0.4s'; item.style.opacity='0'; item.style.transform='translateX(-20px)';
+  setTimeout(()=>item.remove(),400);
+  showToast('❌ Rejected.','error');
+}
+
+// Modal
+function openModal(type){ document.getElementById('modal').classList.add('open'); }
+function closeModal(e){ if(e.target===document.getElementById('modal')) closeModalDirect(); }
+function closeModalDirect(){ document.getElementById('modal').classList.remove('open'); }
+function confirmModal(){
+  closeModalDirect();
+  showToast('✅ User created successfully!','success');
+}
+
+// Toast
+function showToast(msg,type){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.className='toast toast-'+(type||'success')+' show';
+  setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>

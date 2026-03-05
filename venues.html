@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Venues — SRMIST Club Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#03030a;--card:#0f0f22;--card2:#111128;--accent:#6c63ff;--accent2:#ff6584;--accent3:#43e97b;--gold:#f7c948;--text:#f0f0ff;--muted:#8888aa;--border:rgba(108,99,255,0.15);--sidebar-w:260px;}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;cursor:none;overflow-x:hidden;}
+.cursor{position:fixed;width:10px;height:10px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;mix-blend-mode:screen;transition:transform 0.1s;}
+.cursor-ring{position:fixed;width:32px;height:32px;border:1.5px solid rgba(108,99,255,0.5);border-radius:50%;pointer-events:none;z-index:9998;transition:width .25s,height .25s,border-color .25s;}
+.sidebar{width:var(--sidebar-w);flex-shrink:0;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;position:fixed;top:0;left:0;bottom:0;z-index:100;overflow-y:auto;}
+.sidebar::-webkit-scrollbar{width:4px;}.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+.sidebar-brand{padding:28px 24px 20px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border);}
+.brand-icon{width:40px;height:40px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;box-shadow:0 6px 20px rgba(108,99,255,0.35);flex-shrink:0;}
+.brand-text{font-family:'Syne',sans-serif;font-weight:800;font-size:1rem;} .brand-text span{display:block;font-size:0.68rem;color:var(--muted);font-family:'DM Sans',sans-serif;}
+.sidebar-user{padding:14px 18px;margin:12px;background:rgba(108,99,255,0.08);border:1px solid var(--border);border-radius:14px;display:flex;align-items:center;gap:12px;}
+.user-av{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:700;font-family:'Syne',sans-serif;flex-shrink:0;}
+.user-info strong{display:block;font-size:0.85rem;font-weight:600;} .user-info span{font-size:0.72rem;color:var(--accent3);}
+.sidebar-nav{padding:16px 12px;flex:1;}
+.nav-lbl{font-size:0.65rem;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;padding:0 12px;margin:16px 0 8px;}
+.nav-item{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;color:var(--muted);font-size:0.88rem;font-weight:500;text-decoration:none;cursor:none;transition:all 0.25s;margin-bottom:2px;position:relative;}
+.nav-item::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:0;background:var(--accent);border-radius:0 3px 3px 0;transition:height 0.3s;}
+.nav-item:hover{color:var(--text);background:rgba(255,255,255,0.05);}
+.nav-item.active{color:var(--text);background:rgba(108,99,255,0.15);}
+.nav-item.active::before{height:60%;}
+.nav-ic{font-size:1.05rem;width:20px;text-align:center;flex-shrink:0;}
+.nav-badge{margin-left:auto;padding:2px 8px;border-radius:100px;font-size:0.68rem;font-weight:600;}
+.nb-g{background:rgba(67,233,123,0.15);color:var(--accent3);}
+.nb-r{background:rgba(255,101,132,0.15);color:var(--accent2);}
+.sidebar-bot{padding:16px 12px;border-top:1px solid var(--border);}
+.logout-btn{display:flex;align-items:center;gap:12px;padding:11px 14px;border-radius:12px;color:var(--muted);font-size:0.88rem;font-weight:500;cursor:none;background:none;border:none;width:100%;transition:all 0.25s;font-family:'DM Sans',sans-serif;}
+.logout-btn:hover{background:rgba(255,255,255,0.05);color:var(--text);}
+.main{margin-left:var(--sidebar-w);flex:1;min-height:100vh;display:flex;flex-direction:column;}
+.topbar{position:sticky;top:0;z-index:50;background:rgba(3,3,10,0.9);backdrop-filter:blur(20px);border-bottom:1px solid var(--border);padding:0 36px;height:68px;display:flex;align-items:center;gap:20px;}
+.topbar-title{font-family:'Syne',sans-serif;font-weight:700;font-size:1.1rem;}
+.topbar-sub{font-size:0.78rem;color:var(--muted);margin-top:1px;}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:14px;}
+.content{padding:28px 36px;}
+
+/* Filter bar */
+.filter-bar{display:flex;align-items:center;gap:12px;margin-bottom:28px;flex-wrap:wrap;animation:fadeUp 0.6s 0.1s both;}
+.filter-chip{padding:8px 18px;border-radius:100px;border:1px solid var(--border);background:rgba(255,255,255,0.04);color:var(--muted);font-size:0.82rem;font-weight:500;cursor:none;transition:all 0.25s;}
+.filter-chip:hover{color:var(--text);border-color:rgba(108,99,255,0.3);}
+.filter-chip.active{background:rgba(108,99,255,0.15);border-color:var(--accent);color:var(--text);}
+.filter-right{margin-left:auto;display:flex;gap:10px;align-items:center;}
+.search-mini{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:10px;padding:8px 14px;}
+.search-mini input{background:none;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.83rem;width:160px;caret-color:var(--accent);}
+.search-mini input::placeholder{color:var(--muted);}
+.view-toggle{display:flex;gap:4px;background:rgba(255,255,255,0.04);border:1px solid var(--border);border-radius:10px;padding:4px;}
+.view-btn{padding:6px 10px;border-radius:7px;border:none;background:none;color:var(--muted);cursor:none;transition:all 0.2s;font-size:0.95rem;}
+.view-btn.active{background:rgba(108,99,255,0.2);color:var(--accent);}
+
+/* Venues grid */
+.venues-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;animation:fadeUp 0.6s 0.2s both;}
+.venue-card{background:var(--card);border:1px solid var(--border);border-radius:20px;overflow:hidden;transition:all 0.4s cubic-bezier(0.16,1,0.3,1);position:relative;cursor:none;}
+.venue-card:hover{transform:translateY(-8px);box-shadow:0 32px 64px rgba(0,0,0,0.5);border-color:rgba(108,99,255,0.3);}
+.venue-card:nth-child(1){animation:fadeUp 0.6s 0.2s both}
+.venue-card:nth-child(2){animation:fadeUp 0.6s 0.27s both}
+.venue-card:nth-child(3){animation:fadeUp 0.6s 0.34s both}
+.venue-card:nth-child(4){animation:fadeUp 0.6s 0.41s both}
+.venue-card:nth-child(5){animation:fadeUp 0.6s 0.48s both}
+.venue-card:nth-child(6){animation:fadeUp 0.6s 0.55s both}
+
+.venue-img{height:160px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;position:relative;overflow:hidden;}
+.vi-1{background:linear-gradient(135deg,#1a1a3e,#2d1b69);}
+.vi-2{background:linear-gradient(135deg,#1a2e1a,#1b4d2d);}
+.vi-3{background:linear-gradient(135deg,#2e1a1a,#4d1b1b);}
+.vi-4{background:linear-gradient(135deg,#1a2a2e,#1b3d4d);}
+.vi-5{background:linear-gradient(135deg,#2a1a2e,#3d1b4d);}
+.vi-6{background:linear-gradient(135deg,#2e2a1a,#4d3d1b);}
+.venue-img::after{content:'';position:absolute;inset:0;background:linear-gradient(to top,rgba(15,15,34,0.9),transparent);}
+
+/* Shimmer on hover */
+.venue-card::before{content:'';position:absolute;top:0;left:-100%;width:100%;height:2px;background:linear-gradient(90deg,transparent,var(--accent),transparent);transition:left 0.6s;z-index:2;}
+.venue-card:hover::before{left:100%;}
+
+.v-status{position:absolute;top:12px;right:12px;z-index:3;display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:100px;font-size:0.68rem;font-weight:700;}
+.vs-free{background:rgba(67,233,123,0.2);color:var(--accent3);border:1px solid rgba(67,233,123,0.3);}
+.vs-busy{background:rgba(255,101,132,0.2);color:var(--accent2);border:1px solid rgba(255,101,132,0.3);}
+.v-dot{width:5px;height:5px;border-radius:50%;background:currentColor;animation:blink 1.5s infinite;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+.venue-body{padding:20px;}
+.venue-name{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;margin-bottom:6px;}
+.venue-meta{display:flex;gap:14px;margin-bottom:14px;}
+.venue-meta-item{display:flex;align-items:center;gap:5px;font-size:0.75rem;color:var(--muted);}
+.venue-tags{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+.vtag{padding:3px 10px;border-radius:100px;font-size:0.68rem;font-weight:600;background:rgba(108,99,255,0.1);color:#a89cff;}
+.venue-footer{display:flex;align-items:center;justify-content:space-between;}
+.v-slots{font-size:0.75rem;color:var(--muted);}
+.v-slots strong{color:var(--accent3);}
+.book-btn{padding:9px 20px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#9b55ff);border:none;color:white;font-family:'Syne',sans-serif;font-weight:700;font-size:0.82rem;cursor:none;transition:all 0.25s;}
+.book-btn:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(108,99,255,0.4);}
+.book-btn.busy{background:rgba(255,255,255,0.08);color:var(--muted);cursor:not-allowed;}
+.book-btn.busy:hover{transform:none;box-shadow:none;}
+
+/* Booking modal */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(10px);z-index:500;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.3s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:24px;padding:36px;width:500px;max-width:92vw;transform:scale(0.9) translateY(20px);transition:all 0.35s cubic-bezier(0.16,1,0.3,1);max-height:90vh;overflow-y:auto;}
+.modal-overlay.open .modal{transform:scale(1) translateY(0);}
+.modal::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent2),var(--gold));border-radius:24px 24px 0 0;}
+.modal-venue-header{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border);}
+.modal-venue-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:1.6rem;flex-shrink:0;}
+.modal-venue-name{font-family:'Syne',sans-serif;font-weight:800;font-size:1.2rem;}
+.modal-venue-cap{font-size:0.78rem;color:var(--muted);}
+.modal-field{margin-bottom:16px;}
+.modal-field label{display:block;font-size:0.75rem;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.4px;}
+.modal-input{width:100%;padding:12px 14px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:12px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:0.88rem;outline:none;transition:all 0.3s;}
+.modal-input:focus{border-color:var(--accent);background:rgba(108,99,255,0.06);box-shadow:0 0 0 3px rgba(108,99,255,0.1);}
+.modal-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.time-slots{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
+.time-slot{padding:7px 14px;border-radius:8px;border:1px solid var(--border);background:rgba(255,255,255,0.04);font-size:0.78rem;color:var(--muted);cursor:none;transition:all 0.2s;}
+.time-slot:hover{border-color:var(--accent);color:var(--text);}
+.time-slot.selected{background:rgba(108,99,255,0.2);border-color:var(--accent);color:var(--text);font-weight:600;}
+.time-slot.taken{background:rgba(255,101,132,0.08);border-color:rgba(255,101,132,0.2);color:rgba(255,101,132,0.5);cursor:not-allowed;text-decoration:line-through;}
+.modal-btns{display:flex;gap:10px;margin-top:24px;}
+.m-cancel{flex:1;padding:13px;border-radius:12px;background:rgba(255,255,255,0.05);border:1px solid var(--border);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:0.9rem;cursor:none;transition:all 0.2s;}
+.m-cancel:hover{color:var(--text);}
+.m-confirm{flex:2;padding:13px;border-radius:12px;background:linear-gradient(135deg,var(--accent),#9b55ff);border:none;color:white;font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;cursor:none;transition:all 0.3s;position:relative;overflow:hidden;}
+.m-confirm::before{content:'';position:absolute;inset:0;background:linear-gradient(120deg,transparent,rgba(255,255,255,0.15),transparent);transform:translateX(-100%);transition:transform 0.5s;}
+.m-confirm:hover::before{transform:translateX(100%);}
+.m-confirm:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(108,99,255,0.4);}
+
+/* Success screen */
+.success-screen{text-align:center;padding:20px 0;}
+.success-icon{font-size:4rem;margin-bottom:16px;animation:popIn 0.5s cubic-bezier(0.16,1,0.3,1) both;}
+@keyframes popIn{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.success-title{font-family:'Syne',sans-serif;font-weight:800;font-size:1.5rem;margin-bottom:8px;}
+.success-sub{color:var(--muted);font-size:0.88rem;line-height:1.6;margin-bottom:24px;}
+.success-detail{background:rgba(67,233,123,0.08);border:1px solid rgba(67,233,123,0.2);border-radius:14px;padding:16px;margin-bottom:24px;text-align:left;}
+.sd-row{display:flex;justify-content:space-between;padding:6px 0;font-size:0.82rem;border-bottom:1px solid rgba(255,255,255,0.05);}
+.sd-row:last-child{border-bottom:none;}
+.sd-label{color:var(--muted);}
+.sd-val{font-weight:600;}
+.done-btn{width:100%;padding:13px;border-radius:12px;background:linear-gradient(135deg,var(--accent3),#00b894);border:none;color:#003;font-family:'Syne',sans-serif;font-weight:700;font-size:0.9rem;cursor:none;transition:all 0.3s;}
+.done-btn:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(67,233,123,0.3);}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:1100px){.venues-grid{grid-template-columns:repeat(2,1fr);}}
+@media(max-width:768px){.main{margin-left:0;}.sidebar{display:none;}.venues-grid{grid-template-columns:1fr;}.content{padding:16px;}.topbar{padding:0 16px;}}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">⚡</div>
+    <div class="brand-text">SRMIST Portal <span>Club Management System</span></div>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-av">S</div>
+    <div class="user-info"><strong>Sriram</strong><span>● Club Head</span></div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-lbl">Main</div>
+    <a href="dashboard.html" class="nav-item"><span class="nav-ic">🏠</span>Dashboard</a>
+    <a href="venues.html" class="nav-item active"><span class="nav-ic">🏛️</span>Venues <span class="nav-badge nb-g">4 Free</span></a>
+    <a href="#" class="nav-item"><span class="nav-ic">🎉</span>Events <span class="nav-badge">12</span></a>
+    <a href="#" class="nav-item"><span class="nav-ic">👥</span>Members</a>
+    <a href="#" class="nav-item"><span class="nav-ic">📋</span>My Bookings <span class="nav-badge nb-r">2</span></a>
+    <div class="nav-lbl">Club</div>
+    <a href="#" class="nav-item"><span class="nav-ic">🏆</span>My Clubs</a>
+    <a href="#" class="nav-item"><span class="nav-ic">📢</span>Announcements</a>
+    <div class="nav-lbl">Account</div>
+    <a href="admin.html" class="nav-item"><span class="nav-ic">⚙️</span>Admin Panel</a>
+    <a href="#" class="nav-item"><span class="nav-ic">👤</span>Profile</a>
+  </nav>
+  <div class="sidebar-bot">
+    <button class="logout-btn" onclick="window.location.href='login.html'"><span>🚪</span>Logout</button>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">Venue Booking 🏛️</div>
+      <div class="topbar-sub">6 venues available — book your slot now</div>
+    </div>
+    <div class="topbar-right">
+      <a href="dashboard.html" style="color:var(--muted);font-size:0.83rem;text-decoration:none;">← Back to Dashboard</a>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Filter bar -->
+    <div class="filter-bar">
+      <button class="filter-chip active" onclick="filterVenues('all',this)">All Venues</button>
+      <button class="filter-chip" onclick="filterVenues('free',this)">✅ Available</button>
+      <button class="filter-chip" onclick="filterVenues('busy',this)">🔴 Occupied</button>
+      <div class="filter-right">
+        <div class="search-mini">
+          <span style="color:var(--muted)">🔍</span>
+          <input type="text" placeholder="Search venues..." oninput="searchVenues(this.value)">
+        </div>
+      </div>
+    </div>
+
+    <!-- Venues grid -->
+    <div class="venues-grid" id="venuesGrid">
+
+      <div class="venue-card" data-status="busy" data-name="Main Auditorium">
+        <div class="venue-img vi-1">🏟️
+          <div class="v-status vs-busy"><div class="v-dot"></div>Occupied</div>
+        </div>
+        <div class="venue-body">
+          <div class="venue-name">Main Auditorium</div>
+          <div class="venue-meta">
+            <div class="venue-meta-item">👥 2,000 seats</div>
+            <div class="venue-meta-item">📍 Block A</div>
+          </div>
+          <div class="venue-tags"><span class="vtag">Conferences</span><span class="vtag">Hackathons</span><span class="vtag">Convocation</span></div>
+          <div class="venue-footer">
+            <div class="v-slots">Next free: <strong>Mar 10</strong></div>
+            <button class="book-btn busy">Occupied</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="venue-card" data-status="free" data-name="Mini Hall 1">
+        <div class="venue-img vi-2">🎭
+          <div class="v-status vs-free"><div class="v-dot"></div>Available</div>
+        </div>
+        <div class="venue-body">
+          <div class="venue-name">Mini Hall - 1</div>
+          <div class="venue-meta">
+            <div class="venue-meta-item">👥 500 seats</div>
+            <div class="venue-meta-item">📍 Block B</div>
+          </div>
+          <div class="venue-tags"><span class="vtag">Seminars</span><span class="vtag">Cultural</span><span class="vtag">Workshops</span></div>
+          <div class="venue-footer">
+            <div class="v-slots"><strong style="color:var(--accent3)">3 slots</strong> today</div>
+            <button class="book-btn" onclick="openBooking('Mini Hall - 1','🎭','vi-2','500')">Book Now →</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="venue-card" data-status="free" data-name="J.C. Bose Hall">
+        <div class="venue-img vi-3">🔬
+          <div class="v-status vs-free"><div class="v-dot"></div>Available</div>
+        </div>
+        <div class="venue-body">
+          <div class="venue-name">Sir J. C. Bose Hall</div>
+          <div class="venue-meta">
+            <div class="venue-meta-item">👥 800 seats</div>
+            <div class="venue-meta-item">📍 Block C</div>
+          </div>
+          <div class="venue-tags"><span class="vtag">Tech Events</span><span class="vtag">Lectures</span></div>
+          <div class="venue-footer">
+            <div class="v-slots"><strong style="color:var(--accent3)">5 slots</strong> today</div>
+            <button class="book-btn" onclick="openBooking('Sir J.C. Bose Hall','🔬','vi-3','800')">Book Now →</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="venue-card" data-status="free" data-name="Faraday Hall">
+        <div class="venue-img vi-4">⚡
+          <div class="v-status vs-free"><div class="v-dot"></div>Available</div>
+        </div>
+        <div class="venue-body">
+          <div class="venue-name">Faraday Hall</div>
+          <div class="venue-meta">
+            <div class="venue-meta-item">👥 600 seats</div>
+            <div class="venue-meta-item">📍 Block D</div>
+          </div>
+          <div class="venue-tags"><span class="vtag">Workshops</span><span class="vtag">Competitions</span></div>
+          <div class="venue-footer">
+            <div class="v-slots"><strong style="color:var(--accent3)">4 slots</strong> today</div>
+            <button class="book-btn" onclick="openBooking('Faraday Hall','⚡','vi-4','600')">Book Now →</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="venue-card" data-status="busy" data-name="G.D. Naidu Hall">
+        <div class="venue-img vi-5">🏗️
+          <div class="v-status vs-busy"><div class="v-dot"></div>Occupied</div>
+        </div>
+        <div class="venue-body">
+          <div class="venue-name">G. D. Naidu Hall</div>
+          <div class="venue-meta">
+            <div class="venue-meta-item">👥 1,000 seats</div>
+            <div class="venue-meta-item">📍 Block E</div>
+          </div>
+          <div class="venue-tags"><span class="vtag">Annual Events</span><span class="vtag">Fests</span></div>
+          <div class="venue-footer">
+            <div class="v-slots">Next free: <strong>Mar 12</strong></div>
+            <button class="book-btn busy">Occupied</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="venue-card" data-status="busy" data-name="Hippocrates Auditorium">
+        <div class="venue-img vi-6">🏥
+          <div class="v-status vs-busy"><div class="v-dot"></div>Occupied</div>
+        </div>
+        <div class="venue-body">
+          <div class="venue-name">Hippocrates Auditorium</div>
+          <div class="venue-meta">
+            <div class="venue-meta-item">👥 1,200 seats</div>
+            <div class="venue-meta-item">📍 Block F</div>
+          </div>
+          <div class="venue-tags"><span class="vtag">Medical Events</span><span class="vtag">Symposiums</span></div>
+          <div class="venue-footer">
+            <div class="v-slots">Next free: <strong>Mar 15</strong></div>
+            <button class="book-btn busy">Occupied</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Booking Modal -->
+<div class="modal-overlay" id="modal" onclick="handleOverlayClick(event)">
+  <div class="modal" id="modalBox">
+
+    <!-- Step 1: Form -->
+    <div id="step1">
+      <div class="modal-venue-header">
+        <div class="modal-venue-icon" id="modalIcon" style="background:rgba(108,99,255,0.15)">🎭</div>
+        <div>
+          <div class="modal-venue-name" id="modalVenueName">Mini Hall - 1</div>
+          <div class="modal-venue-cap" id="modalCap">Capacity: 500 seats</div>
+        </div>
+      </div>
+
+      <div class="modal-field">
+        <label>Date</label>
+        <input type="date" class="modal-input" id="bookDate">
+      </div>
+      <div class="modal-field">
+        <label>Select Time Slot</label>
+        <div class="time-slots">
+          <div class="time-slot" onclick="selectSlot(this)">9:00 AM</div>
+          <div class="time-slot" onclick="selectSlot(this)">10:00 AM</div>
+          <div class="time-slot taken">11:00 AM</div>
+          <div class="time-slot" onclick="selectSlot(this)">12:00 PM</div>
+          <div class="time-slot taken">2:00 PM</div>
+          <div class="time-slot" onclick="selectSlot(this)">3:00 PM</div>
+          <div class="time-slot" onclick="selectSlot(this)">4:00 PM</div>
+          <div class="time-slot" onclick="selectSlot(this)">5:00 PM</div>
+        </div>
+      </div>
+      <div class="modal-row">
+        <div class="modal-field">
+          <label>Duration</label>
+          <select class="modal-input">
+            <option>1 Hour</option><option>2 Hours</option><option>3 Hours</option><option>Half Day</option><option>Full Day</option>
+          </select>
+        </div>
+        <div class="modal-field">
+          <label>Expected Attendees</label>
+          <input type="number" class="modal-input" placeholder="e.g. 200">
+        </div>
+      </div>
+      <div class="modal-field">
+        <label>Purpose / Event Name</label>
+        <input type="text" class="modal-input" id="bookPurpose" placeholder="e.g. IEEE Workshop on AI">
+      </div>
+      <div class="modal-field">
+        <label>Club Name</label>
+        <select class="modal-input">
+          <option>IEEE Club</option><option>Cultural Club</option><option>Sports Club</option><option>Coding Club</option><option>Other</option>
+        </select>
+      </div>
+      <div class="modal-btns">
+        <button class="m-cancel" onclick="closeModal()">Cancel</button>
+        <button class="m-confirm" onclick="submitBooking()">Submit Request →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Success -->
+    <div id="step2" style="display:none">
+      <div class="success-screen">
+        <div class="success-icon">🎉</div>
+        <div class="success-title">Booking Submitted!</div>
+        <div class="success-sub">Your venue booking request has been sent to the admin. You'll be notified once it's approved.</div>
+        <div class="success-detail">
+          <div class="sd-row"><span class="sd-label">Venue</span><span class="sd-val" id="sd-venue">—</span></div>
+          <div class="sd-row"><span class="sd-label">Date</span><span class="sd-val" id="sd-date">—</span></div>
+          <div class="sd-row"><span class="sd-label">Time</span><span class="sd-val" id="sd-time">—</span></div>
+          <div class="sd-row"><span class="sd-label">Purpose</span><span class="sd-val" id="sd-purpose">—</span></div>
+          <div class="sd-row"><span class="sd-label">Status</span><span class="sd-val" style="color:var(--gold)">⏳ Pending Admin Approval</span></div>
+        </div>
+        <button class="done-btn" onclick="closeModal()">Back to Venues ✓</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const cursor=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+function animateCursor(){cursor.style.left=mx-5+'px';cursor.style.top=my-5+'px';rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;ring.style.left=rx-16+'px';ring.style.top=ry-16+'px';requestAnimationFrame(animateCursor);}
+animateCursor();
+document.querySelectorAll('a,button,input,select,.venue-card,.time-slot,.filter-chip').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ring.style.width='48px';ring.style.height='48px';ring.style.borderColor='rgba(108,99,255,0.8)';cursor.style.transform='scale(0.4)';});
+  el.addEventListener('mouseleave',()=>{ring.style.width='32px';ring.style.height='32px';ring.style.borderColor='rgba(108,99,255,0.5)';cursor.style.transform='scale(1)';});
+});
+
+document.getElementById('bookDate').value = new Date().toISOString().split('T')[0];
+
+let selectedVenue='', selectedTime='';
+
+function openBooking(name, icon, colorClass, cap){
+  selectedVenue=name;
+  document.getElementById('modalVenueName').textContent=name;
+  document.getElementById('modalCap').textContent='Capacity: '+cap+' seats';
+  document.getElementById('modalIcon').textContent=icon;
+  document.getElementById('step1').style.display='block';
+  document.getElementById('step2').style.display='none';
+  document.getElementById('modal').classList.add('open');
+  selectedTime='';
+  document.querySelectorAll('.time-slot:not(.taken)').forEach(s=>s.classList.remove('selected'));
+}
+
+function closeModal(){ document.getElementById('modal').classList.remove('open'); }
+function handleOverlayClick(e){ if(e.target===document.getElementById('modal')) closeModal(); }
+
+function selectSlot(el){
+  document.querySelectorAll('.time-slot').forEach(s=>s.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTime=el.textContent;
+}
+
+function submitBooking(){
+  const date=document.getElementById('bookDate').value;
+  const purpose=document.getElementById('bookPurpose').value;
+  if(!date||!selectedTime){alert('Please select a date and time slot!');return;}
+  document.getElementById('step1').style.display='none';
+  document.getElementById('step2').style.display='block';
+  document.getElementById('sd-venue').textContent=selectedVenue;
+  document.getElementById('sd-date').textContent=new Date(date).toLocaleDateString('en-IN',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
+  document.getElementById('sd-time').textContent=selectedTime;
+  document.getElementById('sd-purpose').textContent=purpose||'Not specified';
+}
+
+function filterVenues(status, btn){
+  document.querySelectorAll('.filter-chip').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.venue-card').forEach(card=>{
+    const show = status==='all' || card.dataset.status===status;
+    card.style.display=show?'':'none';
+  });
+}
+
+function searchVenues(val){
+  const q=val.toLowerCase();
+  document.querySelectorAll('.venue-card').forEach(card=>{
+    card.style.display=card.dataset.name.toLowerCase().includes(q)?'':'none';
+  });
+}
+</script>
+</body>
+</html>

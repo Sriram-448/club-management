@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Register — SRMIST Club Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #03030a; --surface: #0d0d1a; --card: #0f0f22;
+  --accent: #6c63ff; --accent2: #ff6584; --accent3: #43e97b; --gold: #f7c948;
+  --text: #f0f0ff; --muted: #8888aa; --border: rgba(108,99,255,0.18);
+  --error: #ff6584; --success: #43e97b;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; overflow-x: hidden; cursor: none; }
+
+.cursor{position:fixed;width:10px;height:10px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;mix-blend-mode:screen;transition:transform 0.1s;}
+.cursor-ring{position:fixed;width:32px;height:32px;border:1.5px solid rgba(108,99,255,0.5);border-radius:50%;pointer-events:none;z-index:9998;transition:width .25s,height .25s,border-color .25s;}
+
+/* Layout */
+.right-deco {
+  flex: 1; position: relative; overflow: hidden;
+  background: linear-gradient(135deg, #060614, #0d0a2e);
+  display: flex; align-items: center; justify-content: center;
+}
+.left-form {
+  width: 520px; flex-shrink: 0;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  padding: 48px 52px;
+  position: relative; overflow-y: auto;
+  max-height: 100vh;
+}
+
+/* Deco panel */
+.deco-grid {
+  position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(108,99,255,0.07) 1px, transparent 1px), linear-gradient(90deg, rgba(108,99,255,0.07) 1px, transparent 1px);
+  background-size: 50px 50px;
+}
+.deco-orb { position: absolute; border-radius: 50%; filter: blur(70px); animation: orbFloat 10s ease-in-out infinite; }
+.deco-orb-1 { width: 450px; height: 450px; background: radial-gradient(circle, rgba(67,233,123,0.2), transparent 70%); top: -100px; right: -100px; }
+.deco-orb-2 { width: 350px; height: 350px; background: radial-gradient(circle, rgba(108,99,255,0.25), transparent 70%); bottom: -50px; left: -50px; animation-delay: -5s; }
+@keyframes orbFloat{0%,100%{transform:translate(0,0)}33%{transform:translate(20px,-15px)}66%{transform:translate(-15px,20px)}}
+
+.deco-content { position: relative; z-index: 2; text-align: center; max-width: 400px; padding: 40px; }
+.deco-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2.5rem; letter-spacing: -1.5px; margin-bottom: 16px; line-height: 1.1; }
+.gradient-text { background: linear-gradient(135deg, var(--accent3), var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.deco-sub { color: var(--muted); font-size: 0.92rem; line-height: 1.7; margin-bottom: 40px; }
+
+/* Steps visual */
+.steps { display: flex; flex-direction: column; gap: 0; }
+.step {
+  display: flex; align-items: flex-start; gap: 16px;
+  padding: 16px 0; position: relative;
+}
+.step:not(:last-child)::after {
+  content: ''; position: absolute; left: 19px; top: 44px;
+  width: 2px; height: calc(100% - 12px);
+  background: linear-gradient(to bottom, var(--accent), transparent);
+}
+.step-num {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: rgba(108,99,255,0.15); border: 1px solid rgba(108,99,255,0.3);
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.85rem;
+  color: var(--accent); flex-shrink: 0;
+}
+.step-text strong { display: block; font-size: 0.88rem; font-weight: 600; margin-bottom: 3px; }
+.step-text span { font-size: 0.78rem; color: var(--muted); }
+
+/* Floating badges */
+.deco-badge {
+  position: absolute; z-index: 3;
+  background: rgba(15,15,34,0.92); border: 1px solid var(--border);
+  border-radius: 14px; padding: 12px 16px;
+  backdrop-filter: blur(12px);
+  animation: badgeFloat 6s ease-in-out infinite;
+}
+.deco-badge-1 { top: 60px; left: 40px; animation-delay: -1s; }
+.deco-badge-2 { bottom: 60px; right: 40px; animation-delay: -4s; }
+@keyframes badgeFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.badge-label{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px;}
+.badge-val{font-family:'Syne',sans-serif;font-weight:700;font-size:1rem;}
+
+/* Form */
+.left-form::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--accent3), var(--accent), var(--accent2));
+}
+
+.form-header { margin-bottom: 28px; animation: fadeUp 0.8s 0.2s both; }
+.form-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.8rem; letter-spacing: -1px; margin-bottom: 6px; }
+.form-sub { color: var(--muted); font-size: 0.85rem; }
+.form-sub a { color: var(--accent); text-decoration: none; font-weight: 500; }
+.form-sub a:hover { text-decoration: underline; }
+
+/* Progress bar */
+.progress-bar {
+  height: 3px; background: rgba(255,255,255,0.06); border-radius: 10px;
+  margin-bottom: 28px; overflow: hidden;
+  animation: fadeUp 0.8s 0.3s both;
+}
+.progress-fill {
+  height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2));
+  border-radius: 10px; transition: width 0.5s cubic-bezier(0.16,1,0.3,1);
+  width: 0%;
+}
+
+/* Role selector */
+.role-selector {
+  display: grid; grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px; margin-bottom: 20px;
+  animation: fadeUp 0.8s 0.35s both;
+}
+.role-btn {
+  padding: 14px 10px; border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 0.82rem; font-weight: 500;
+  cursor: none; text-align: center;
+  transition: all 0.25s;
+  display: flex; flex-direction: column; align-items: center; gap: 6px;
+}
+.role-btn .role-icon { font-size: 1.3rem; }
+.role-btn:hover { border-color: rgba(108,99,255,0.3); background: rgba(108,99,255,0.08); color: var(--text); }
+.role-btn.active { border-color: var(--accent); background: rgba(108,99,255,0.15); color: var(--text); box-shadow: 0 0 0 3px rgba(108,99,255,0.12); }
+
+/* Grid inputs */
+.input-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+.input-group { margin-bottom: 16px; animation: fadeUp 0.8s both; }
+label { display: block; font-size: 0.78rem; font-weight: 600; color: var(--muted); margin-bottom: 7px; letter-spacing: 0.3px; text-transform: uppercase; }
+.input-wrap { position: relative; }
+.input-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); font-size: 0.95rem; pointer-events: none; }
+input[type=text],input[type=email],input[type=password],select {
+  width: 100%; padding: 12px 12px 12px 40px;
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 12px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.9rem;
+  outline: none; transition: all 0.3s; caret-color: var(--accent);
+}
+select { padding-left: 40px; -webkit-appearance: none; cursor: none; }
+input:focus, select:focus { border-color: var(--accent); background: rgba(108,99,255,0.06); box-shadow: 0 0 0 3px rgba(108,99,255,0.12); }
+input.error { border-color: var(--error); box-shadow: 0 0 0 3px rgba(255,101,132,0.12); }
+.field-error { font-size: 0.72rem; color: var(--error); margin-top: 5px; display: none; }
+.field-error.show { display: block; }
+
+/* Password strength */
+.pwd-strength { margin-top: 8px; }
+.pwd-strength-bar { height: 3px; background: rgba(255,255,255,0.08); border-radius: 10px; overflow: hidden; margin-bottom: 4px; }
+.pwd-strength-fill { height: 100%; border-radius: 10px; transition: all 0.4s; width: 0%; }
+.pwd-strength-label { font-size: 0.72rem; color: var(--muted); }
+
+.pwd-toggle { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted); font-size: 0.95rem; cursor: none; transition: color 0.2s; }
+.pwd-toggle:hover { color: var(--text); }
+
+/* Terms */
+.terms-row {
+  display: flex; align-items: flex-start; gap: 10px;
+  margin-bottom: 20px;
+  animation: fadeUp 0.8s 0.7s both;
+}
+.terms-row input[type=checkbox] { width: 16px; height: 16px; margin-top: 2px; accent-color: var(--accent); cursor: none; flex-shrink: 0; }
+.terms-row label { font-size: 0.8rem; color: var(--muted); text-transform: none; letter-spacing: 0; }
+.terms-row a { color: var(--accent); text-decoration: none; }
+.terms-row a:hover { text-decoration: underline; }
+
+/* Submit */
+.submit-btn {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, var(--accent3), #00b894);
+  border: none; border-radius: 12px; color: #003; font-family: 'Syne', sans-serif;
+  font-weight: 700; font-size: 1rem; letter-spacing: 0.3px; cursor: none;
+  position: relative; overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+  animation: fadeUp 0.8s 0.75s both;
+}
+.submit-btn::before { content: ''; position: absolute; inset: 0; background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent); transform: translateX(-100%); transition: transform 0.5s; }
+.submit-btn:hover::before { transform: translateX(100%); }
+.submit-btn:hover { transform: translateY(-2px); box-shadow: 0 12px 40px rgba(67,233,123,0.35); }
+.submit-btn.loading { pointer-events: none; }
+.submit-btn.loading .btn-text { opacity: 0; }
+.submit-btn .spinner { display: none; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 20px; height: 20px; border: 2px solid rgba(0,0,0,0.3); border-top-color: #003; border-radius: 50%; animation: spin 0.8s linear infinite; }
+.submit-btn.loading .spinner { display: block; }
+@keyframes spin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* Toast */
+.toast { position: fixed; bottom: 32px; right: 32px; background: rgba(67,233,123,0.15); border: 1px solid rgba(67,233,123,0.3); border-radius: 14px; padding: 16px 20px; display: flex; align-items: center; gap: 12px; font-size: 0.88rem; color: var(--accent3); z-index: 1000; transform: translateY(100px); opacity: 0; transition: all 0.5s cubic-bezier(0.16,1,0.3,1); }
+.toast.show { transform: translateY(0); opacity: 1; }
+
+@media(max-width:900px){.right-deco{display:none;}.left-form{width:100%;}}
+@media(max-width:480px){.left-form{padding:32px 20px;}.input-row{grid-template-columns:1fr;}.role-selector{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Left form -->
+<div class="left-form">
+  <div class="form-header">
+    <div class="form-title">Create Account 🚀</div>
+    <p class="form-sub">Already have an account? <a href="login.html">Sign in</a></p>
+  </div>
+
+  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+  <form id="registerForm" novalidate>
+    <!-- Role selector -->
+    <div style="margin-bottom:8px;animation:fadeUp 0.8s 0.3s both;">
+      <label style="margin-bottom:10px;">I am a</label>
+    </div>
+    <div class="role-selector" id="roleSelector">
+      <button type="button" class="role-btn active" data-role="student">
+        <span class="role-icon">🎓</span>Student
+      </button>
+      <button type="button" class="role-btn" data-role="club-head">
+        <span class="role-icon">👑</span>Club Head
+      </button>
+      <button type="button" class="role-btn" data-role="admin">
+        <span class="role-icon">⚙️</span>Admin
+      </button>
+    </div>
+
+    <!-- Name row -->
+    <div class="input-row">
+      <div class="input-group" style="animation-delay:0.38s">
+        <label>First Name</label>
+        <div class="input-wrap">
+          <span class="input-icon">✏️</span>
+          <input type="text" id="firstName" placeholder="Sriram" oninput="updateProgress()">
+        </div>
+        <div class="field-error" id="firstNameErr">First name is required</div>
+      </div>
+      <div class="input-group" style="animation-delay:0.42s">
+        <label>Last Name</label>
+        <div class="input-wrap">
+          <span class="input-icon">✏️</span>
+          <input type="text" id="lastName" placeholder="Kumar" oninput="updateProgress()">
+        </div>
+      </div>
+    </div>
+
+    <div class="input-group" style="animation-delay:0.46s">
+      <label>Username</label>
+      <div class="input-wrap">
+        <span class="input-icon">👤</span>
+        <input type="text" id="username" placeholder="@sriram448" oninput="updateProgress()">
+      </div>
+      <div class="field-error" id="usernameErr">Username is required</div>
+    </div>
+
+    <div class="input-group" style="animation-delay:0.5s">
+      <label>Email Address</label>
+      <div class="input-wrap">
+        <span class="input-icon">📧</span>
+        <input type="email" id="email" placeholder="sr1234@srmist.edu.in" oninput="updateProgress()">
+      </div>
+      <div class="field-error" id="emailErr">Enter a valid email</div>
+    </div>
+
+    <div class="input-group" style="animation-delay:0.54s">
+      <label>Department</label>
+      <div class="input-wrap">
+        <span class="input-icon">🏫</span>
+        <select id="dept" onchange="updateProgress()">
+          <option value="">Select your department</option>
+          <option>Computer Science Engineering</option>
+          <option>Electronics & Communication</option>
+          <option>Mechanical Engineering</option>
+          <option>Biomedical Engineering</option>
+          <option>Civil Engineering</option>
+          <option>Information Technology</option>
+          <option>Other</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="input-group" style="animation-delay:0.58s">
+      <label>Password</label>
+      <div class="input-wrap">
+        <span class="input-icon">🔒</span>
+        <input type="password" id="password" placeholder="Create a strong password" oninput="checkStrength(this.value); updateProgress()">
+        <button type="button" class="pwd-toggle" onclick="togglePwd('password',this)">👁️</button>
+      </div>
+      <div class="pwd-strength">
+        <div class="pwd-strength-bar"><div class="pwd-strength-fill" id="strengthFill"></div></div>
+        <div class="pwd-strength-label" id="strengthLabel">Enter a password</div>
+      </div>
+      <div class="field-error" id="passwordErr">Password must be at least 8 characters</div>
+    </div>
+
+    <div class="input-group" style="animation-delay:0.62s">
+      <label>Confirm Password</label>
+      <div class="input-wrap">
+        <span class="input-icon">🔐</span>
+        <input type="password" id="confirmPwd" placeholder="Re-enter your password" oninput="updateProgress()">
+        <button type="button" class="pwd-toggle" onclick="togglePwd('confirmPwd',this)">👁️</button>
+      </div>
+      <div class="field-error" id="confirmErr">Passwords do not match</div>
+    </div>
+
+    <div class="terms-row">
+      <input type="checkbox" id="terms">
+      <label for="terms">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+    </div>
+
+    <button type="submit" class="submit-btn" id="submitBtn">
+      <span class="btn-text">Create Account →</span>
+      <div class="spinner"></div>
+    </button>
+  </form>
+</div>
+
+<!-- Right deco panel -->
+<div class="right-deco">
+  <div class="deco-grid"></div>
+  <div class="deco-orb deco-orb-1"></div>
+  <div class="deco-orb deco-orb-2"></div>
+
+  <div class="deco-badge deco-badge-1">
+    <div class="badge-label">Registered Members</div>
+    <div class="badge-val" style="color:var(--accent)">5,200+</div>
+  </div>
+  <div class="deco-badge deco-badge-2">
+    <div class="badge-label">Free Forever</div>
+    <div class="badge-val" style="color:var(--accent3)">$0 / mo</div>
+  </div>
+
+  <div class="deco-content">
+    <h2 class="deco-title">Join the<br><span class="gradient-text">SRMIST<br>Community</span></h2>
+    <p class="deco-sub">Register once. Access everything — venues, events, clubs, and more.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">1</div>
+        <div class="step-text"><strong>Create your account</strong><span>Fill in your details below</span></div>
+      </div>
+      <div class="step">
+        <div class="step-num">2</div>
+        <div class="step-text"><strong>Verify your email</strong><span>Check your SRM inbox</span></div>
+      </div>
+      <div class="step">
+        <div class="step-num">3</div>
+        <div class="step-text"><strong>Join or create a club</strong><span>Start your journey</span></div>
+      </div>
+      <div class="step">
+        <div class="step-num">4</div>
+        <div class="step-text"><strong>Book venues & events</strong><span>All from the dashboard</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast">✅ Account created! Redirecting to dashboard...</div>
+
+<script>
+// Cursor
+const cursor=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+function animateCursor(){cursor.style.left=mx-5+'px';cursor.style.top=my-5+'px';rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;ring.style.left=rx-16+'px';ring.style.top=ry-16+'px';requestAnimationFrame(animateCursor);}
+animateCursor();
+document.querySelectorAll('a,button,input,select').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ring.style.width='52px';ring.style.height='52px';ring.style.borderColor='rgba(108,99,255,0.8)';cursor.style.transform='scale(0.4)';});
+  el.addEventListener('mouseleave',()=>{ring.style.width='32px';ring.style.height='32px';ring.style.borderColor='rgba(108,99,255,0.5)';cursor.style.transform='scale(1)';});
+});
+
+// Role selector
+document.querySelectorAll('.role-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.role-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+  });
+});
+
+// Password toggle
+function togglePwd(id, btn){ const i=document.getElementById(id); i.type=i.type==='password'?'text':'password'; btn.textContent=i.type==='password'?'👁️':'🙈'; }
+
+// Password strength
+function checkStrength(val){
+  const fill=document.getElementById('strengthFill'), label=document.getElementById('strengthLabel');
+  let score=0;
+  if(val.length>=8)score++; if(val.length>=12)score++; if(/[A-Z]/.test(val))score++; if(/[0-9]/.test(val))score++; if(/[^A-Za-z0-9]/.test(val))score++;
+  const configs=[
+    {w:'0%',c:'transparent',l:'Enter a password'},
+    {w:'20%',c:'#ff6584',l:'Very weak'},
+    {w:'40%',c:'#ff9a44',l:'Weak'},
+    {w:'60%',c:'#f7c948',l:'Fair'},
+    {w:'80%',c:'#43e97b',l:'Strong'},
+    {w:'100%',c:'#00b894',l:'Very strong 🔥'},
+  ];
+  const c=configs[score];
+  fill.style.width=c.w; fill.style.background=c.c; label.textContent=c.l; label.style.color=c.c;
+}
+
+// Progress bar
+function updateProgress(){
+  const fields=[
+    document.getElementById('firstName').value,
+    document.getElementById('username').value,
+    document.getElementById('email').value,
+    document.getElementById('dept').value,
+    document.getElementById('password').value,
+    document.getElementById('confirmPwd').value,
+  ];
+  const filled=fields.filter(f=>f.trim()).length;
+  document.getElementById('progressFill').style.width=(filled/fields.length*100)+'%';
+}
+
+// Form submit
+document.getElementById('registerForm').addEventListener('submit',async function(e){
+  e.preventDefault();
+  const firstName=document.getElementById('firstName').value.trim();
+  const username=document.getElementById('username').value.trim();
+  const email=document.getElementById('email').value.trim();
+  const password=document.getElementById('password').value;
+  const confirmPwd=document.getElementById('confirmPwd').value;
+  const terms=document.getElementById('terms').checked;
+
+  // Reset errors
+  document.querySelectorAll('.field-error').forEach(el=>el.classList.remove('show'));
+  document.querySelectorAll('input,select').forEach(el=>el.classList.remove('error'));
+
+  let valid=true;
+  if(!firstName){document.getElementById('firstName').classList.add('error');document.getElementById('firstNameErr').classList.add('show');valid=false;}
+  if(!username){document.getElementById('username').classList.add('error');document.getElementById('usernameErr').classList.add('show');valid=false;}
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){document.getElementById('email').classList.add('error');document.getElementById('emailErr').classList.add('show');valid=false;}
+  if(!password||password.length<8){document.getElementById('password').classList.add('error');document.getElementById('passwordErr').classList.add('show');valid=false;}
+  if(password!==confirmPwd){document.getElementById('confirmPwd').classList.add('error');document.getElementById('confirmErr').classList.add('show');valid=false;}
+  if(!terms){alert('Please agree to the Terms of Service.');valid=false;}
+  if(!valid)return;
+
+  const btn=document.getElementById('submitBtn');
+  btn.classList.add('loading');
+  await new Promise(r=>setTimeout(r,1800));
+  btn.classList.remove('loading');
+  document.getElementById('progressFill').style.width='100%';
+  document.getElementById('toast').classList.add('show');
+  setTimeout(()=>{window.location.href='dashboard.html';},2000);
+});
+</script>
+</body>
+</html>

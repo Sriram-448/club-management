@@ -1,0 +1,985 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard — SRMIST Club Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #03030a;
+  --surface: #0d0d1a;
+  --card: #0f0f22;
+  --card2: #111128;
+  --accent: #6c63ff;
+  --accent2: #ff6584;
+  --accent3: #43e97b;
+  --gold: #f7c948;
+  --cyan: #00d2ff;
+  --text: #f0f0ff;
+  --muted: #8888aa;
+  --border: rgba(108,99,255,0.15);
+  --sidebar-w: 260px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;display:flex;cursor:none;overflow-x:hidden;}
+
+/* Cursor */
+.cursor{position:fixed;width:10px;height:10px;background:var(--accent);border-radius:50%;pointer-events:none;z-index:9999;mix-blend-mode:screen;transition:transform 0.1s;}
+.cursor-ring{position:fixed;width:32px;height:32px;border:1.5px solid rgba(108,99,255,0.5);border-radius:50%;pointer-events:none;z-index:9998;transition:width .25s,height .25s,border-color .25s;}
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  background: var(--card);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  position: fixed; top: 0; left: 0; bottom: 0;
+  z-index: 100;
+  transition: transform 0.4s cubic-bezier(0.16,1,0.3,1);
+  overflow-y: auto;
+}
+.sidebar::-webkit-scrollbar{width:4px;}
+.sidebar::-webkit-scrollbar-track{background:transparent;}
+.sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px;}
+
+.sidebar-brand {
+  padding: 28px 24px 20px;
+  display: flex; align-items: center; gap: 12px;
+  border-bottom: 1px solid var(--border);
+}
+.brand-icon {
+  width: 40px; height: 40px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  box-shadow: 0 6px 20px rgba(108,99,255,0.35);
+  flex-shrink: 0;
+}
+.brand-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; letter-spacing: -0.3px; }
+.brand-text span { display: block; font-size: 0.68rem; font-weight: 400; color: var(--muted); font-family: 'DM Sans', sans-serif; margin-top: 1px; }
+
+/* User profile in sidebar */
+.sidebar-user {
+  padding: 16px 20px;
+  margin: 12px;
+  background: rgba(108,99,255,0.08);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: flex; align-items: center; gap: 12px;
+}
+.user-avatar {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), var(--accent2));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; font-weight: 700; flex-shrink: 0;
+  font-family: 'Syne', sans-serif;
+}
+.user-info strong { display: block; font-size: 0.85rem; font-weight: 600; }
+.user-info span { font-size: 0.72rem; color: var(--accent3); font-weight: 500; }
+.user-badge {
+  margin-left: auto;
+  width: 8px; height: 8px;
+  background: var(--accent3);
+  border-radius: 50%;
+  animation: blink 1.5s ease-in-out infinite;
+  flex-shrink: 0;
+}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+
+/* Nav */
+.sidebar-nav { padding: 16px 12px; flex: 1; }
+.nav-section-label {
+  font-size: 0.65rem; font-weight: 700; color: var(--muted);
+  letter-spacing: 2px; text-transform: uppercase;
+  padding: 0 12px; margin: 16px 0 8px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px; border-radius: 12px;
+  color: var(--muted); font-size: 0.88rem; font-weight: 500;
+  text-decoration: none; cursor: none;
+  transition: all 0.25s; margin-bottom: 2px;
+  position: relative; overflow: hidden;
+}
+.nav-item::before {
+  content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 3px; height: 0; background: var(--accent); border-radius: 0 3px 3px 0;
+  transition: height 0.3s;
+}
+.nav-item:hover { color: var(--text); background: rgba(255,255,255,0.05); }
+.nav-item.active { color: var(--text); background: rgba(108,99,255,0.15); }
+.nav-item.active::before { height: 60%; }
+.nav-icon { font-size: 1.05rem; width: 20px; text-align: center; flex-shrink: 0; }
+.nav-badge {
+  margin-left: auto; padding: 2px 8px;
+  background: rgba(108,99,255,0.2); border-radius: 100px;
+  font-size: 0.68rem; color: var(--accent); font-weight: 600;
+}
+.nav-badge.green { background: rgba(67,233,123,0.15); color: var(--accent3); }
+.nav-badge.red { background: rgba(255,101,132,0.15); color: var(--accent2); }
+
+/* Sidebar bottom */
+.sidebar-bottom {
+  padding: 16px 12px;
+  border-top: 1px solid var(--border);
+}
+.logout-btn {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px; border-radius: 12px;
+  color: var(--accent2); font-size: 0.88rem; font-weight: 500;
+  cursor: none; background: none; border: none; width: 100%;
+  transition: all 0.25s;
+  font-family: 'DM Sans', sans-serif;
+}
+.logout-btn:hover { background: rgba(255,101,132,0.1); }
+
+/* ===== MAIN ===== */
+.main {
+  margin-left: var(--sidebar-w);
+  flex: 1; min-height: 100vh;
+  display: flex; flex-direction: column;
+}
+
+/* Topbar */
+.topbar {
+  position: sticky; top: 0; z-index: 50;
+  background: rgba(3,3,10,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 36px;
+  height: 68px;
+  display: flex; align-items: center; gap: 20px;
+  animation: slideDown 0.6s cubic-bezier(0.16,1,0.3,1) both;
+}
+@keyframes slideDown{from{transform:translateY(-100%);opacity:0}to{transform:translateY(0);opacity:1}}
+
+.topbar-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; letter-spacing: -0.3px; }
+.topbar-sub { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
+
+.topbar-right { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+
+/* Search */
+.search-box {
+  display: flex; align-items: center; gap: 10px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--border); border-radius: 10px;
+  padding: 8px 14px; width: 220px;
+  transition: all 0.3s;
+}
+.search-box:focus-within { border-color: var(--accent); background: rgba(108,99,255,0.08); width: 260px; }
+.search-box input {
+  background: none; border: none; outline: none;
+  color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+  width: 100%; caret-color: var(--accent);
+}
+.search-box input::placeholder { color: var(--muted); }
+
+/* Icon buttons */
+.icon-btn {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: rgba(255,255,255,0.05); border: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem; cursor: none; transition: all 0.25s; position: relative;
+}
+.icon-btn:hover { background: rgba(108,99,255,0.15); border-color: var(--accent); }
+.notif-dot {
+  position: absolute; top: 6px; right: 6px;
+  width: 8px; height: 8px; background: var(--accent2); border-radius: 50%;
+  border: 2px solid var(--bg);
+  animation: blink 1.5s infinite;
+}
+
+/* Content area */
+.content { padding: 32px 36px; flex: 1; }
+
+/* Welcome banner */
+.welcome-banner {
+  background: linear-gradient(135deg, rgba(108,99,255,0.15), rgba(255,101,132,0.08));
+  border: 1px solid rgba(108,99,255,0.2);
+  border-radius: 20px; padding: 28px 32px;
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 28px;
+  position: relative; overflow: hidden;
+  animation: fadeUp 0.6s 0.1s both;
+}
+.welcome-banner::before {
+  content: ''; position: absolute; top: -60%; right: -5%;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(108,99,255,0.2), transparent 70%);
+  pointer-events: none;
+}
+.welcome-text h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1.5rem; letter-spacing: -0.5px; margin-bottom: 6px; }
+.welcome-text p { color: var(--muted); font-size: 0.88rem; }
+.welcome-actions { display: flex; gap: 10px; position: relative; z-index: 2; }
+.btn-sm {
+  padding: 9px 20px; border-radius: 10px;
+  font-family: 'DM Sans', sans-serif; font-size: 0.85rem; font-weight: 600;
+  cursor: none; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+  transition: all 0.25s;
+}
+.btn-sm-primary { background: var(--accent); color: white; border: none; }
+.btn-sm-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(108,99,255,0.4); }
+.btn-sm-ghost { background: rgba(255,255,255,0.06); color: var(--text); border: 1px solid var(--border); }
+.btn-sm-ghost:hover { background: rgba(255,255,255,0.1); }
+
+/* ===== STATS CARDS ===== */
+.stats-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 16px; margin-bottom: 28px;
+}
+.stat-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px; padding: 24px;
+  position: relative; overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.16,1,0.3,1);
+  animation: fadeUp 0.6s both;
+}
+.stat-card:nth-child(1){animation-delay:0.15s}
+.stat-card:nth-child(2){animation-delay:0.22s}
+.stat-card:nth-child(3){animation-delay:0.29s}
+.stat-card:nth-child(4){animation-delay:0.36s}
+.stat-card::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(135deg, rgba(108,99,255,0.06), transparent);
+  opacity: 0; transition: opacity 0.3s;
+}
+.stat-card:hover { transform: translateY(-4px); box-shadow: 0 20px 48px rgba(0,0,0,0.4); border-color: rgba(108,99,255,0.3); }
+.stat-card:hover::after { opacity: 1; }
+
+.stat-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
+.stat-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+.stat-icon-1 { background: rgba(108,99,255,0.15); }
+.stat-icon-2 { background: rgba(67,233,123,0.15); }
+.stat-icon-3 { background: rgba(255,101,132,0.15); }
+.stat-icon-4 { background: rgba(247,201,72,0.15); }
+.stat-trend {
+  display: flex; align-items: center; gap: 4px;
+  font-size: 0.72rem; font-weight: 600; padding: 3px 8px;
+  border-radius: 100px;
+}
+.trend-up { background: rgba(67,233,123,0.12); color: var(--accent3); }
+.trend-down { background: rgba(255,101,132,0.12); color: var(--accent2); }
+
+.stat-value {
+  font-family: 'Syne', sans-serif; font-weight: 800;
+  font-size: 2rem; letter-spacing: -1px; margin-bottom: 4px;
+}
+.stat-label { font-size: 0.8rem; color: var(--muted); font-weight: 500; }
+
+/* ===== MAIN GRID ===== */
+.main-grid {
+  display: grid;
+  grid-template-columns: 1fr 360px;
+  gap: 20px;
+}
+
+/* Section titles */
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 16px;
+}
+.section-title-sm {
+  font-family: 'Syne', sans-serif; font-weight: 700;
+  font-size: 1rem; letter-spacing: -0.3px;
+}
+.see-all {
+  font-size: 0.78rem; color: var(--accent); text-decoration: none; font-weight: 500;
+  transition: opacity 0.2s;
+}
+.see-all:hover { opacity: 0.7; }
+
+/* Venues grid */
+.venues-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 12px; margin-bottom: 20px;
+  animation: fadeUp 0.6s 0.4s both;
+}
+.venue-item {
+  background: var(--card2);
+  border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px;
+  display: flex; align-items: center; gap: 14px;
+  cursor: none; transition: all 0.3s;
+  position: relative; overflow: hidden;
+}
+.venue-item::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+  width: 3px; border-radius: 3px;
+  transition: all 0.3s;
+}
+.venue-item.free::before { background: var(--accent3); }
+.venue-item.busy::before { background: var(--accent2); }
+.venue-item:hover { border-color: rgba(108,99,255,0.3); transform: translateX(3px); }
+.venue-emoji { font-size: 1.6rem; flex-shrink: 0; }
+.venue-info { flex: 1; min-width: 0; }
+.venue-name-sm { font-weight: 600; font-size: 0.85rem; margin-bottom: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.venue-cap { font-size: 0.72rem; color: var(--muted); }
+.venue-status-badge {
+  font-size: 0.65rem; font-weight: 700; padding: 3px 8px;
+  border-radius: 100px; flex-shrink: 0;
+  text-transform: uppercase; letter-spacing: 0.5px;
+}
+.status-free { background: rgba(67,233,123,0.12); color: var(--accent3); }
+.status-busy { background: rgba(255,101,132,0.12); color: var(--accent2); }
+
+/* Events */
+.events-list { display: flex; flex-direction: column; gap: 10px; animation: fadeUp 0.6s 0.45s both; }
+.event-item {
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px;
+  display: flex; align-items: center; gap: 14px;
+  transition: all 0.3s; cursor: none;
+}
+.event-item:hover { border-color: rgba(108,99,255,0.3); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.3); }
+.event-date {
+  width: 44px; height: 44px; border-radius: 12px;
+  background: rgba(108,99,255,0.15); border: 1px solid rgba(108,99,255,0.2);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex-shrink: 0; text-align: center;
+}
+.event-day { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 1rem; line-height: 1; color: var(--accent); }
+.event-month { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+.event-info { flex: 1; }
+.event-name { font-weight: 600; font-size: 0.88rem; margin-bottom: 3px; }
+.event-meta { font-size: 0.75rem; color: var(--muted); display: flex; align-items: center; gap: 8px; }
+.event-tag { padding: 2px 8px; border-radius: 100px; font-size: 0.68rem; font-weight: 600; }
+.tag-tech { background: rgba(108,99,255,0.15); color: var(--accent); }
+.tag-cultural { background: rgba(247,201,72,0.15); color: var(--gold); }
+.tag-sports { background: rgba(67,233,123,0.15); color: var(--accent3); }
+.tag-workshop { background: rgba(0,210,255,0.15); color: var(--cyan); }
+.event-rsvp {
+  padding: 6px 14px; border-radius: 8px;
+  background: rgba(108,99,255,0.12); border: 1px solid rgba(108,99,255,0.2);
+  color: var(--accent); font-size: 0.75rem; font-weight: 600;
+  cursor: none; transition: all 0.25s; flex-shrink: 0;
+}
+.event-rsvp:hover { background: var(--accent); color: white; }
+
+/* Right column */
+.right-col { display: flex; flex-direction: column; gap: 20px; }
+
+/* Quick booking */
+.quick-book {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 18px; padding: 22px;
+  animation: fadeUp 0.6s 0.3s both;
+}
+.book-form { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.book-select, .book-input {
+  width: 100%; padding: 11px 14px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px; color: var(--text);
+  font-family: 'DM Sans', sans-serif; font-size: 0.85rem;
+  outline: none; transition: all 0.3s; cursor: none;
+  -webkit-appearance: none;
+}
+.book-select:focus, .book-input:focus { border-color: var(--accent); background: rgba(108,99,255,0.06); box-shadow: 0 0 0 3px rgba(108,99,255,0.1); }
+.book-btn {
+  padding: 12px; border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), #9b55ff);
+  border: none; color: white;
+  font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem;
+  cursor: none; transition: all 0.3s;
+}
+.book-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(108,99,255,0.4); }
+
+/* Announcements */
+.announcements {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 18px; padding: 22px;
+  animation: fadeUp 0.6s 0.35s both;
+}
+.announce-list { display: flex; flex-direction: column; gap: 10px; margin-top: 16px; }
+.announce-item {
+  display: flex; gap: 12px; padding: 12px;
+  background: rgba(255,255,255,0.03); border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  transition: all 0.25s; cursor: none;
+}
+.announce-item:hover { background: rgba(108,99,255,0.08); border-color: var(--border); }
+.announce-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 5px; flex-shrink: 0; }
+.dot-purple { background: var(--accent); }
+.dot-green { background: var(--accent3); }
+.dot-gold { background: var(--gold); }
+.dot-red { background: var(--accent2); }
+.announce-text { font-size: 0.82rem; line-height: 1.5; }
+.announce-text strong { display: block; margin-bottom: 2px; font-size: 0.83rem; }
+.announce-time { font-size: 0.7rem; color: var(--muted); margin-top: 3px; }
+
+/* Activity feed */
+.activity {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 18px; padding: 22px;
+  animation: fadeUp 0.6s 0.4s both;
+}
+.activity-list { display: flex; flex-direction: column; margin-top: 16px; }
+.activity-item {
+  display: flex; gap: 12px; padding: 12px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  position: relative;
+}
+.activity-item:last-child { border-bottom: none; }
+.activity-avatar {
+  width: 32px; height: 32px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem; flex-shrink: 0; font-weight: 700;
+  font-family: 'Syne', sans-serif;
+}
+.av-1{background:rgba(108,99,255,0.2);color:var(--accent);}
+.av-2{background:rgba(67,233,123,0.2);color:var(--accent3);}
+.av-3{background:rgba(255,101,132,0.2);color:var(--accent2);}
+.av-4{background:rgba(247,201,72,0.2);color:var(--gold);}
+.activity-text { font-size: 0.8rem; line-height: 1.5; flex: 1; }
+.activity-text strong { font-weight: 600; }
+.activity-time { font-size: 0.68rem; color: var(--muted); }
+
+/* Chart placeholder */
+.chart-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 18px; padding: 22px;
+  margin-bottom: 20px;
+  animation: fadeUp 0.6s 0.35s both;
+}
+.mini-chart { height: 120px; display: flex; align-items: flex-end; gap: 6px; margin-top: 20px; padding: 0 4px; }
+.bar {
+  flex: 1; border-radius: 6px 6px 0 0;
+  background: rgba(108,99,255,0.3);
+  transition: all 0.4s cubic-bezier(0.16,1,0.3,1);
+  position: relative; cursor: none;
+  animation: barGrow 0.8s cubic-bezier(0.16,1,0.3,1) both;
+}
+.bar:hover { background: var(--accent); }
+.bar.active { background: linear-gradient(to top, var(--accent), var(--accent2)); }
+@keyframes barGrow { from{transform:scaleY(0);transform-origin:bottom} to{transform:scaleY(1);transform-origin:bottom} }
+.bar:nth-child(1){animation-delay:0.5s} .bar:nth-child(2){animation-delay:0.55s}
+.bar:nth-child(3){animation-delay:0.6s} .bar:nth-child(4){animation-delay:0.65s}
+.bar:nth-child(5){animation-delay:0.7s} .bar:nth-child(6){animation-delay:0.75s}
+.bar:nth-child(7){animation-delay:0.8s}
+.chart-labels { display: flex; gap: 6px; margin-top: 8px; padding: 0 4px; }
+.chart-label { flex: 1; text-align: center; font-size: 0.65rem; color: var(--muted); }
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* Notification panel */
+.notif-panel {
+  position: fixed; top: 68px; right: 24px;
+  width: 320px; background: var(--card);
+  border: 1px solid var(--border); border-radius: 18px;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.5);
+  z-index: 200; padding: 20px;
+  transform: translateY(-10px) scale(0.95);
+  opacity: 0; pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+.notif-panel.open { transform: translateY(0) scale(1); opacity: 1; pointer-events: all; }
+.notif-panel-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: center; }
+.notif-clear { font-size: 0.72rem; color: var(--accent); cursor: none; }
+.notif-item { display: flex; gap: 10px; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+.notif-item:last-child { border-bottom: none; }
+.notif-icon { font-size: 1.1rem; width: 32px; height: 32px; background: rgba(108,99,255,0.1); border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.notif-text { font-size: 0.78rem; line-height: 1.5; flex: 1; }
+.notif-text span { display: block; font-size: 0.68rem; color: var(--muted); margin-top: 2px; }
+
+/* Mobile hamburger */
+.hamburger { display: none; background: none; border: none; color: var(--text); font-size: 1.3rem; cursor: none; }
+
+/* Responsive */
+@media(max-width:1100px){.stats-grid{grid-template-columns:repeat(2,1fr);}.main-grid{grid-template-columns:1fr;}}
+@media(max-width:768px){
+  .sidebar{transform:translateX(-100%);}
+  .sidebar.open{transform:translateX(0);}
+  .main{margin-left:0;}
+  .content{padding:20px;}
+  .topbar{padding:0 20px;}
+  .hamburger{display:flex;}
+  .venues-grid{grid-template-columns:1fr;}
+  .welcome-actions{display:none;}
+}
+
+/* Tooltip */
+[data-tip] { position: relative; }
+[data-tip]:hover::after {
+  content: attr(data-tip);
+  position: absolute; bottom: 110%; left: 50%; transform: translateX(-50%);
+  background: rgba(20,20,40,0.95); border: 1px solid var(--border);
+  border-radius: 8px; padding: 6px 10px;
+  font-size: 0.72rem; white-space: nowrap; color: var(--text);
+  pointer-events: none; z-index: 500;
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- Sidebar -->
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">⚡</div>
+    <div class="brand-text">SRMIST Portal <span>Club Management System</span></div>
+  </div>
+
+  <div class="sidebar-user">
+    <div class="user-avatar">S</div>
+    <div class="user-info">
+      <strong>Sriram</strong>
+      <span>● Club Head</span>
+    </div>
+    <div class="user-badge"></div>
+  </div>
+
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Main</div>
+    <a href="dashboard.html" class="nav-item active">
+      <span class="nav-icon">🏠</span> Dashboard
+    </a>
+    <a href="venues.html" class="nav-item">
+      <span class="nav-icon">🏛️</span> Venues
+      <span class="nav-badge green">4 Free</span>
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">🎉</span> Events
+      <span class="nav-badge">12</span>
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">👥</span> Members
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">📋</span> My Bookings
+      <span class="nav-badge red">2</span>
+    </a>
+
+    <div class="nav-section-label">Club</div>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">🏆</span> My Clubs
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">📢</span> Announcements
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">📊</span> Analytics
+    </a>
+
+    <div class="nav-section-label">Account</div>
+    <a href="admin.html" class="nav-item">
+      <span class="nav-icon">⚙️</span> Admin Panel
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">👤</span> Profile
+    </a>
+    <a href="#" class="nav-item">
+      <span class="nav-icon">🔔</span> Notifications
+      <span class="nav-badge red">3</span>
+    </a>
+  </nav>
+
+  <div class="sidebar-bottom">
+    <button class="logout-btn" onclick="window.location.href='login.html'">
+      <span>🚪</span> Logout
+    </button>
+  </div>
+</aside>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Topbar -->
+  <div class="topbar">
+    <button class="hamburger" onclick="toggleSidebar()">☰</button>
+    <div>
+      <div class="topbar-title">Dashboard</div>
+      <div class="topbar-sub">Thursday, March 2026</div>
+    </div>
+    <div class="topbar-right">
+      <div class="search-box">
+        <span style="color:var(--muted);font-size:0.9rem">🔍</span>
+        <input type="text" placeholder="Search venues, events...">
+      </div>
+      <div class="icon-btn" data-tip="Notifications" onclick="toggleNotif()" id="notifBtn">
+        🔔 <div class="notif-dot"></div>
+      </div>
+      <div class="icon-btn" data-tip="Settings">⚙️</div>
+      <div class="user-avatar" style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:800;font-size:0.9rem;cursor:none;">S</div>
+    </div>
+  </div>
+
+  <!-- Notification panel -->
+  <div class="notif-panel" id="notifPanel">
+    <div class="notif-panel-title">Notifications <span class="notif-clear" onclick="clearNotifs()">Clear all</span></div>
+    <div class="notif-item"><div class="notif-icon">🏛️</div><div class="notif-text"><strong>Booking Approved</strong> Main Auditorium confirmed for Mar 10 <span>2 hours ago</span></div></div>
+    <div class="notif-item"><div class="notif-icon">🎉</div><div class="notif-text"><strong>New Event</strong> Hackathon 2026 has been published <span>5 hours ago</span></div></div>
+    <div class="notif-item"><div class="notif-icon">👥</div><div class="notif-text"><strong>New Member</strong> Priya joined your club <span>Yesterday</span></div></div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+
+    <!-- Welcome banner -->
+    <div class="welcome-banner">
+      <div class="welcome-text">
+        <h2>Good morning, Sriram! 👋</h2>
+        <p>You have 2 pending bookings and 3 upcoming events this week.</p>
+      </div>
+      <div class="welcome-actions">
+        <a href="venues.html" class="btn-sm btn-sm-primary">📅 Book a Venue</a>
+        <a href="#" class="btn-sm btn-sm-ghost">➕ Create Event</a>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-card-top">
+          <div class="stat-icon stat-icon-1">🏛️</div>
+          <div class="stat-trend trend-up">↑ 2 new</div>
+        </div>
+        <div class="stat-value" data-target="6">0</div>
+        <div class="stat-label">Total Venues</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-top">
+          <div class="stat-icon stat-icon-2">🎉</div>
+          <div class="stat-trend trend-up">↑ 4 this week</div>
+        </div>
+        <div class="stat-value" data-target="12">0</div>
+        <div class="stat-label">Upcoming Events</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-top">
+          <div class="stat-icon stat-icon-3">👥</div>
+          <div class="stat-trend trend-up">↑ 28 this month</div>
+        </div>
+        <div class="stat-value" data-target="248">0</div>
+        <div class="stat-label">Club Members</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-card-top">
+          <div class="stat-icon stat-icon-4">📋</div>
+          <div class="stat-trend trend-down">2 pending</div>
+        </div>
+        <div class="stat-value" data-target="5">0</div>
+        <div class="stat-label">My Bookings</div>
+      </div>
+    </div>
+
+    <!-- Main grid -->
+    <div class="main-grid">
+      <div class="left-col">
+
+        <!-- Venue availability -->
+        <div class="chart-card">
+          <div class="section-header">
+            <div class="section-title-sm">📊 Bookings This Week</div>
+            <a href="#" class="see-all">View report →</a>
+          </div>
+          <div class="mini-chart">
+            <div class="bar" style="height:40%" data-tip="Mon: 2"></div>
+            <div class="bar" style="height:65%" data-tip="Tue: 4"></div>
+            <div class="bar active" style="height:90%" data-tip="Wed: 6"></div>
+            <div class="bar" style="height:50%" data-tip="Thu: 3"></div>
+            <div class="bar" style="height:75%" data-tip="Fri: 5"></div>
+            <div class="bar" style="height:30%" data-tip="Sat: 2"></div>
+            <div class="bar" style="height:20%" data-tip="Sun: 1"></div>
+          </div>
+          <div class="chart-labels">
+            <div class="chart-label">Mon</div><div class="chart-label">Tue</div>
+            <div class="chart-label">Wed</div><div class="chart-label">Thu</div>
+            <div class="chart-label">Fri</div><div class="chart-label">Sat</div>
+            <div class="chart-label">Sun</div>
+          </div>
+        </div>
+
+        <!-- Venues -->
+        <div style="animation: fadeUp 0.6s 0.4s both;">
+          <div class="section-header">
+            <div class="section-title-sm">🏛️ Venue Availability</div>
+            <a href="venues.html" class="see-all">See all →</a>
+          </div>
+          <div class="venues-grid">
+            <div class="venue-item busy">
+              <div class="venue-emoji">🏟️</div>
+              <div class="venue-info">
+                <div class="venue-name-sm">Main Auditorium</div>
+                <div class="venue-cap">2,000 seats</div>
+              </div>
+              <div class="venue-status-badge status-busy">Busy</div>
+            </div>
+            <div class="venue-item free">
+              <div class="venue-emoji">🎭</div>
+              <div class="venue-info">
+                <div class="venue-name-sm">Mini Hall - 1</div>
+                <div class="venue-cap">500 seats</div>
+              </div>
+              <div class="venue-status-badge status-free">Free</div>
+            </div>
+            <div class="venue-item free">
+              <div class="venue-emoji">🔬</div>
+              <div class="venue-info">
+                <div class="venue-name-sm">J. C. Bose Hall</div>
+                <div class="venue-cap">800 seats</div>
+              </div>
+              <div class="venue-status-badge status-free">Free</div>
+            </div>
+            <div class="venue-item free">
+              <div class="venue-emoji">⚡</div>
+              <div class="venue-info">
+                <div class="venue-name-sm">Faraday Hall</div>
+                <div class="venue-cap">600 seats</div>
+              </div>
+              <div class="venue-status-badge status-free">Free</div>
+            </div>
+            <div class="venue-item busy">
+              <div class="venue-emoji">🏗️</div>
+              <div class="venue-info">
+                <div class="venue-name-sm">G. D. Naidu Hall</div>
+                <div class="venue-cap">1,000 seats</div>
+              </div>
+              <div class="venue-status-badge status-busy">Busy</div>
+            </div>
+            <div class="venue-item busy">
+              <div class="venue-emoji">🏥</div>
+              <div class="venue-info">
+                <div class="venue-name-sm">Hippocrates Aud.</div>
+                <div class="venue-cap">1,200 seats</div>
+              </div>
+              <div class="venue-status-badge status-busy">Busy</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upcoming events -->
+        <div style="animation: fadeUp 0.6s 0.5s both; margin-top: 20px;">
+          <div class="section-header">
+            <div class="section-title-sm">🎉 Upcoming Events</div>
+            <a href="#" class="see-all">See all →</a>
+          </div>
+          <div class="events-list">
+            <div class="event-item">
+              <div class="event-date"><div class="event-day">08</div><div class="event-month">Mar</div></div>
+              <div class="event-info">
+                <div class="event-name">Hackathon 2026 — Semicolon</div>
+                <div class="event-meta"><span>🏛️ Main Auditorium</span> <span class="event-tag tag-tech">Tech</span></div>
+              </div>
+              <button class="event-rsvp">RSVP</button>
+            </div>
+            <div class="event-item">
+              <div class="event-date"><div class="event-day">12</div><div class="event-month">Mar</div></div>
+              <div class="event-info">
+                <div class="event-name">Cultural Fest — Aarohan</div>
+                <div class="event-meta"><span>🎭 Mini Hall - 1</span> <span class="event-tag tag-cultural">Cultural</span></div>
+              </div>
+              <button class="event-rsvp">RSVP</button>
+            </div>
+            <div class="event-item">
+              <div class="event-date"><div class="event-day">15</div><div class="event-month">Mar</div></div>
+              <div class="event-info">
+                <div class="event-name">Web Dev Workshop — IEEE</div>
+                <div class="event-meta"><span>🔬 J.C. Bose Hall</span> <span class="event-tag tag-workshop">Workshop</span></div>
+              </div>
+              <button class="event-rsvp">RSVP</button>
+            </div>
+            <div class="event-item">
+              <div class="event-date"><div class="event-day">20</div><div class="event-month">Mar</div></div>
+              <div class="event-info">
+                <div class="event-name">Sports Meet — Invictus</div>
+                <div class="event-meta"><span>⚡ Faraday Hall</span> <span class="event-tag tag-sports">Sports</span></div>
+              </div>
+              <button class="event-rsvp">RSVP</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right column -->
+      <div class="right-col">
+
+        <!-- Quick booking -->
+        <div class="quick-book">
+          <div class="section-title-sm">⚡ Quick Book</div>
+          <div class="book-form">
+            <select class="book-select" id="venueSelect">
+              <option value="">🏛️ Select Venue</option>
+              <option>Mini Hall - 1</option>
+              <option>J. C. Bose Hall</option>
+              <option>Faraday Hall</option>
+              <option>Main Auditorium</option>
+              <option>G. D. Naidu Hall</option>
+              <option>Hippocrates Auditorium</option>
+            </select>
+            <input type="date" class="book-input" id="bookDate">
+            <input type="time" class="book-input" id="bookTime">
+            <select class="book-select">
+              <option value="">🎯 Purpose</option>
+              <option>Club Meeting</option>
+              <option>Hackathon</option>
+              <option>Workshop</option>
+              <option>Cultural Event</option>
+              <option>Sports Event</option>
+              <option>Other</option>
+            </select>
+            <button class="book-btn" onclick="handleBooking()">Request Booking →</button>
+          </div>
+        </div>
+
+        <!-- Announcements -->
+        <div class="announcements">
+          <div class="section-header">
+            <div class="section-title-sm">📢 Announcements</div>
+            <a href="#" class="see-all">See all →</a>
+          </div>
+          <div class="announce-list">
+            <div class="announce-item">
+              <div class="announce-dot dot-red"></div>
+              <div class="announce-text">
+                <strong>Hippocrates Auditorium Occupied</strong>
+                Booked till Friday 6PM for annual function.
+                <div class="announce-time">🕐 2 hours ago</div>
+              </div>
+            </div>
+            <div class="announce-item">
+              <div class="announce-dot dot-green"></div>
+              <div class="announce-text">
+                <strong>New Venue Available</strong>
+                Mini Hall - 2 is now open for bookings.
+                <div class="announce-time">🕐 Yesterday</div>
+              </div>
+            </div>
+            <div class="announce-item">
+              <div class="announce-dot dot-gold"></div>
+              <div class="announce-text">
+                <strong>Booking Window Open</strong>
+                April slots are now open — book early!
+                <div class="announce-time">🕐 2 days ago</div>
+              </div>
+            </div>
+            <div class="announce-item">
+              <div class="announce-dot dot-purple"></div>
+              <div class="announce-text">
+                <strong>Hackathon 2026 Registration</strong>
+                Register by Mar 7 for Semicolon 2026.
+                <div class="announce-time">🕐 3 days ago</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent activity -->
+        <div class="activity">
+          <div class="section-title-sm" style="margin-bottom:0">⚡ Recent Activity</div>
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-avatar av-1">S</div>
+              <div class="activity-text"><strong>You</strong> booked Faraday Hall for Mar 15 <div class="activity-time">Today, 9:30 AM</div></div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-avatar av-2">P</div>
+              <div class="activity-text"><strong>Priya</strong> joined your club <div class="activity-time">Today, 8:15 AM</div></div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-avatar av-3">R</div>
+              <div class="activity-text"><strong>Rahul</strong> created a new event <div class="activity-time">Yesterday</div></div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-avatar av-4">A</div>
+              <div class="activity-text"><strong>Admin</strong> approved your booking <div class="activity-time">2 days ago</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Booking toast -->
+<div id="bookToast" style="position:fixed;bottom:32px;right:32px;background:rgba(67,233,123,0.15);border:1px solid rgba(67,233,123,0.3);border-radius:14px;padding:16px 20px;display:flex;align-items:center;gap:12px;font-size:0.88rem;color:var(--accent3);z-index:1000;transform:translateY(100px);opacity:0;transition:all 0.5s cubic-bezier(0.16,1,0.3,1);">
+  ✅ Booking request submitted!
+</div>
+
+<script>
+// Cursor
+const cursor=document.getElementById('cursor'),ring=document.getElementById('cursorRing');
+let mx=0,my=0,rx=0,ry=0;
+document.addEventListener('mousemove',e=>{mx=e.clientX;my=e.clientY;});
+function animateCursor(){cursor.style.left=mx-5+'px';cursor.style.top=my-5+'px';rx+=(mx-rx)*0.12;ry+=(my-ry)*0.12;ring.style.left=rx-16+'px';ring.style.top=ry-16+'px';requestAnimationFrame(animateCursor);}
+animateCursor();
+document.querySelectorAll('a,button,input,select,.venue-item,.event-item,.announce-item').forEach(el=>{
+  el.addEventListener('mouseenter',()=>{ring.style.width='48px';ring.style.height='48px';ring.style.borderColor='rgba(108,99,255,0.8)';cursor.style.transform='scale(0.4)';});
+  el.addEventListener('mouseleave',()=>{ring.style.width='32px';ring.style.height='32px';ring.style.borderColor='rgba(108,99,255,0.5)';cursor.style.transform='scale(1)';});
+});
+
+// Animated counters
+function animateCounter(el, target, duration=1500){
+  let start=0, startTime=null;
+  function step(timestamp){
+    if(!startTime) startTime=timestamp;
+    const progress=Math.min((timestamp-startTime)/duration,1);
+    const ease=1-Math.pow(1-progress,4);
+    el.textContent=Math.floor(ease*target);
+    if(progress<1) requestAnimationFrame(step);
+    else el.textContent=target;
+  }
+  requestAnimationFrame(step);
+}
+setTimeout(()=>{
+  document.querySelectorAll('.stat-value[data-target]').forEach(el=>{
+    animateCounter(el, parseInt(el.dataset.target));
+  });
+}, 400);
+
+// Sidebar toggle
+function toggleSidebar(){
+  document.getElementById('sidebar').classList.toggle('open');
+}
+
+// Notification panel
+function toggleNotif(){
+  document.getElementById('notifPanel').classList.toggle('open');
+}
+function clearNotifs(){
+  document.getElementById('notifPanel').classList.remove('open');
+}
+document.addEventListener('click', e=>{
+  const panel=document.getElementById('notifPanel');
+  const btn=document.getElementById('notifBtn');
+  if(!panel.contains(e.target)&&!btn.contains(e.target)) panel.classList.remove('open');
+});
+
+// Booking
+function handleBooking(){
+  const venue=document.getElementById('venueSelect').value;
+  const date=document.getElementById('bookDate').value;
+  if(!venue||!date){alert('Please select a venue and date!');return;}
+  const toast=document.getElementById('bookToast');
+  toast.style.transform='translateY(0)'; toast.style.opacity='1';
+  setTimeout(()=>{toast.style.transform='translateY(100px)';toast.style.opacity='0';},3000);
+}
+
+// Set today's date as default
+document.getElementById('bookDate').value = new Date().toISOString().split('T')[0];
+
+// RSVP buttons
+document.querySelectorAll('.event-rsvp').forEach(btn=>{
+  btn.addEventListener('click',function(){
+    if(this.textContent==='RSVP'){
+      this.textContent='✓ Going';
+      this.style.background='rgba(67,233,123,0.15)';
+      this.style.borderColor='rgba(67,233,123,0.3)';
+      this.style.color='var(--accent3)';
+    } else {
+      this.textContent='RSVP';
+      this.style.background='';
+      this.style.borderColor='';
+      this.style.color='';
+    }
+  });
+});
+</script>
+</body>
+</html>
