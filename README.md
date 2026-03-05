@@ -1,6 +1,6 @@
 # ⚡ SRMIST Club Portal
 
-A full-stack web application built to digitize and streamline club management at SRM Institute of Science and Technology. Students can book venues, view events, and manage their club activities — all from one platform.
+A full-stack web application built to digitize and streamline club management at SRM Institute of Science and Technology. Students can book venues, view events, and manage their club activities all from one platform.
 
 🌐 **Live Demo:** https://srmist-club-portal.vercel.app
 
