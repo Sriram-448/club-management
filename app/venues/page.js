@@ -1,8 +1,13 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { createBrowserClient } from '@supabase/ssr'
 
 export default function Venues() {
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  )
   const cursorRef = useRef(null)
   const ringRef = useRef(null)
   const [filter, setFilter] = useState('all')
@@ -12,7 +17,12 @@ export default function Venues() {
   const [selectedSlot, setSelectedSlot] = useState('')
   const [bookDate, setBookDate] = useState('')
   const [purpose, setPurpose] = useState('')
+  const [club, setClub] = useState('')
+  const [duration, setDuration] = useState('1 Hour')
+  const [attendees, setAttendees] = useState('')
   const [step, setStep] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [user, setUser] = useState(null)
 
   useEffect(() => {
     let mx = 0, my = 0, rx = 0, ry = 0
@@ -26,16 +36,24 @@ export default function Venues() {
     }
     animate()
     setBookDate(new Date().toISOString().split('T')[0])
+
+    // Get current user
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) setUser(session.user)
+    }
+    getUser()
+
     return () => document.removeEventListener('mousemove', move)
   }, [])
 
   const venues = [
-    { emoji: '🏟️', name: 'Main Auditorium', cap: '2,000', block: 'Block A', status: 'busy', next: 'Mar 10', tags: ['Conferences', 'Hackathons', 'Convocation'], bg: 'linear-gradient(135deg,#1a1a3e,#2d1b69)', slots: 0 },
-    { emoji: '🎭', name: 'Mini Hall - 1', cap: '500', block: 'Block B', status: 'free', tags: ['Seminars', 'Cultural', 'Workshops'], bg: 'linear-gradient(135deg,#1a2e1a,#1b4d2d)', slots: 3 },
-    { emoji: '🔬', name: 'Sir J.C. Bose Hall', cap: '800', block: 'Block C', status: 'free', tags: ['Tech Events', 'Lectures'], bg: 'linear-gradient(135deg,#2e1a1a,#4d1b1b)', slots: 5 },
-    { emoji: '⚡', name: 'Faraday Hall', cap: '600', block: 'Block D', status: 'free', tags: ['Workshops', 'Competitions'], bg: 'linear-gradient(135deg,#1a2a2e,#1b3d4d)', slots: 4 },
-    { emoji: '🏗️', name: 'G.D. Naidu Hall', cap: '1,000', block: 'Block E', status: 'busy', next: 'Mar 12', tags: ['Annual Events', 'Fests'], bg: 'linear-gradient(135deg,#2a1a2e,#3d1b4d)', slots: 0 },
-    { emoji: '🏥', name: 'Hippocrates Aud.', cap: '1,200', block: 'Block F', status: 'busy', next: 'Mar 15', tags: ['Medical Events', 'Symposiums'], bg: 'linear-gradient(135deg,#2e2a1a,#4d3d1b)', slots: 0 },
+    { id: 1, emoji: '🏟️', name: 'Main Auditorium', cap: '2,000', block: 'Block A', status: 'busy', next: 'Mar 10', tags: ['Conferences', 'Hackathons', 'Convocation'], bg: 'linear-gradient(135deg,#1a1a3e,#2d1b69)', slots: 0 },
+    { id: 2, emoji: '🎭', name: 'Mini Hall - 1', cap: '500', block: 'Block B', status: 'free', tags: ['Seminars', 'Cultural', 'Workshops'], bg: 'linear-gradient(135deg,#1a2e1a,#1b4d2d)', slots: 3 },
+    { id: 3, emoji: '🔬', name: 'Sir J.C. Bose Hall', cap: '800', block: 'Block C', status: 'free', tags: ['Tech Events', 'Lectures'], bg: 'linear-gradient(135deg,#2e1a1a,#4d1b1b)', slots: 5 },
+    { id: 4, emoji: '⚡', name: 'Faraday Hall', cap: '600', block: 'Block D', status: 'free', tags: ['Workshops', 'Competitions'], bg: 'linear-gradient(135deg,#1a2a2e,#1b3d4d)', slots: 4 },
+    { id: 5, emoji: '🏗️', name: 'G.D. Naidu Hall', cap: '1,000', block: 'Block E', status: 'busy', next: 'Mar 12', tags: ['Annual Events', 'Fests'], bg: 'linear-gradient(135deg,#2a1a2e,#3d1b4d)', slots: 0 },
+    { id: 6, emoji: '🏥', name: 'Hippocrates Aud.', cap: '1,200', block: 'Block F', status: 'busy', next: 'Mar 15', tags: ['Medical Events', 'Symposiums'], bg: 'linear-gradient(135deg,#2e2a1a,#4d3d1b)', slots: 0 },
   ]
 
   const timeSlots = ['9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM']
@@ -52,13 +70,69 @@ export default function Venues() {
     setSelectedVenue(venue)
     setSelectedSlot('')
     setPurpose('')
+    setClub('')
+    setAttendees('')
     setStep(1)
     setModal(true)
   }
 
-  const submitBooking = () => {
-    if (!bookDate || !selectedSlot) { alert('Please select a date and time slot!'); return }
-    setStep(2)
+  const submitBooking = async () => {
+    if (!bookDate || !selectedSlot) {
+      alert('Please select a date and time slot!')
+      return
+    }
+    if (!purpose) {
+      alert('Please enter a purpose!')
+      return
+    }
+
+    setLoading(true)
+
+    try {
+      // Save booking to Supabase
+      const { data, error } = await supabase
+        .from('bookings')
+        .insert([{
+          user_id: user?.id,
+          venue_id: selectedVenue.id,
+          date: bookDate,
+          time_slot: selectedSlot,
+          duration: duration,
+          purpose: purpose,
+          club: club,
+          attendees: attendees ? parseInt(attendees) : null,
+          status: 'pending'
+        }])
+
+      if (error) {
+        console.error('Booking error:', error)
+        alert('Failed to submit booking. Please try again.')
+        setLoading(false)
+        return
+      }
+
+      // Send email notification to admin
+      await fetch('/api/notify-booking', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          venue: selectedVenue.name,
+          date: bookDate,
+          timeSlot: selectedSlot,
+          purpose: purpose,
+          club: club,
+          userEmail: user?.email,
+        })
+      })
+
+      setLoading(false)
+      setStep(2)
+
+    } catch (err) {
+      console.error(err)
+      setLoading(false)
+      alert('Something went wrong. Please try again.')
+    }
   }
 
   const navItems = [
@@ -84,8 +158,13 @@ export default function Venues() {
             <div style={{ fontFamily: 'var(--font-syne)', fontWeight: 800, fontSize: '1rem' }}>SRMIST Portal<span style={{ display: 'block', fontSize: '0.68rem', fontWeight: 400, color: 'var(--muted)', fontFamily: 'DM Sans,sans-serif' }}>Club Management System</span></div>
           </div>
           <div style={{ padding: '14px 18px', margin: 12, background: 'rgba(108,99,255,0.08)', border: '1px solid var(--border)', borderRadius: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg,#6c63ff,#ff6584)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-syne)', fontWeight: 800, flexShrink: 0 }}>S</div>
-            <div><strong style={{ display: 'block', fontSize: '0.85rem' }}>Sriram</strong><span style={{ fontSize: '0.72rem', color: '#43e97b' }}>● Club Head</span></div>
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg,#6c63ff,#ff6584)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-syne)', fontWeight: 800, flexShrink: 0 }}>
+              {user?.email?.[0]?.toUpperCase() || 'U'}
+            </div>
+            <div>
+              <strong style={{ display: 'block', fontSize: '0.85rem' }}>{user?.user_metadata?.full_name || 'User'}</strong>
+              <span style={{ fontSize: '0.72rem', color: '#43e97b' }}>● {user?.user_metadata?.role || 'Student'}</span>
+            </div>
           </div>
           <nav style={{ padding: '16px 12px', flex: 1 }}>
             <div style={{ fontSize: '0.65rem', fontWeight: 700, color: 'var(--muted)', letterSpacing: 2, textTransform: 'uppercase', padding: '0 12px', margin: '8px 0' }}>Main</div>
@@ -96,7 +175,7 @@ export default function Venues() {
             ))}
           </nav>
           <div style={{ padding: '16px 12px', borderTop: '1px solid var(--border)' }}>
-            <button onClick={() => window.location.href = '/login'} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 12, color: '#ff6584', fontSize: '0.88rem', cursor: 'none', background: 'none', border: 'none', width: '100%', fontFamily: 'DM Sans,sans-serif' }}>🚪 Logout</button>
+            <button onClick={() => { supabase.auth.signOut(); window.location.href = '/login' }} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 12, color: '#ff6584', fontSize: '0.88rem', cursor: 'none', background: 'none', border: 'none', width: '100%', fontFamily: 'DM Sans,sans-serif' }}>🚪 Logout</button>
           </div>
         </aside>
 
@@ -164,7 +243,7 @@ export default function Venues() {
 
       {/* Booking Modal */}
       {modal && (
-        <div onClick={(e) => { if (e.target === e.currentTarget) { setModal(false) } }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(10px)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.3s both' }}>
+        <div onClick={(e) => { if (e.target === e.currentTarget) setModal(false) }} style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(10px)', zIndex: 500, display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.3s both' }}>
           <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 24, padding: 36, width: 500, maxWidth: '92vw', position: 'relative', maxHeight: '90vh', overflowY: 'auto', animation: 'popIn 0.35s cubic-bezier(0.16,1,0.3,1) both' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: 'linear-gradient(90deg,#6c63ff,#ff6584,#f7c948)', borderRadius: '24px 24px 0 0' }} />
 
@@ -201,34 +280,35 @@ export default function Venues() {
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 16 }}>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Duration</label>
-                    <select style={{ width: '100%', padding: '12px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: 'var(--text)', fontFamily: 'DM Sans,sans-serif', fontSize: '0.88rem', outline: 'none', WebkitAppearance: 'none', cursor: 'none' }}>
+                    <select value={duration} onChange={e => setDuration(e.target.value)} style={{ width: '100%', padding: '12px 14px', background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: '#f0f0ff', fontFamily: 'DM Sans,sans-serif', fontSize: '0.88rem', outline: 'none', WebkitAppearance: 'none', cursor: 'none' }}>
                       <option>1 Hour</option><option>2 Hours</option><option>3 Hours</option><option>Half Day</option><option>Full Day</option>
                     </select>
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Attendees</label>
-                    <input type="number" placeholder="e.g. 200" style={{ width: '100%', padding: '12px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: 'var(--text)', fontFamily: 'DM Sans,sans-serif', fontSize: '0.88rem', outline: 'none' }} />
+                    <input type="number" placeholder="e.g. 200" value={attendees} onChange={e => setAttendees(e.target.value)} style={{ width: '100%', padding: '12px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: 'var(--text)', fontFamily: 'DM Sans,sans-serif', fontSize: '0.88rem', outline: 'none' }} />
                   </div>
                 </div>
 
                 <div style={{ marginBottom: 16 }}>
-                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Purpose / Event Name</label>
+                  <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Purpose / Event Name *</label>
                   <input type="text" placeholder="e.g. IEEE Workshop on AI" value={purpose} onChange={e => setPurpose(e.target.value)} style={{ width: '100%', padding: '12px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: 'var(--text)', fontFamily: 'DM Sans,sans-serif', fontSize: '0.88rem', outline: 'none' }} />
                 </div>
 
                 <div style={{ marginBottom: 24 }}>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--muted)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Club Name</label>
-                  <select style={{ width: '100%', padding: '12px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: 'var(--text)', fontFamily: 'DM Sans,sans-serif', fontSize: '0.88rem', outline: 'none', WebkitAppearance: 'none', cursor: 'none' }}>
+                  <select value={club} onChange={e => setClub(e.target.value)} style={{ width: '100%', padding: '12px 14px', background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 12, color: '#f0f0ff', fontFamily: 'DM Sans,sans-serif', fontSize: '0.88rem', outline: 'none', WebkitAppearance: 'none', cursor: 'none' }}>
+                    <option value="">Select your club</option>
                     <option>IEEE Club</option><option>Cultural Club</option><option>Sports Club</option><option>Coding Club</option><option>Other</option>
                   </select>
                 </div>
 
                 <div style={{ display: 'flex', gap: 10 }}>
                   <button onClick={() => setModal(false)} style={{ flex: 1, padding: 13, borderRadius: 12, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', color: 'var(--muted)', fontFamily: 'DM Sans,sans-serif', fontSize: '0.9rem', cursor: 'none', transition: 'all 0.2s' }}>Cancel</button>
-                  <button onClick={submitBooking} style={{ flex: 2, padding: 13, borderRadius: 12, background: 'linear-gradient(135deg,#6c63ff,#9b55ff)', border: 'none', color: 'white', fontFamily: 'var(--font-syne)', fontWeight: 700, fontSize: '0.9rem', cursor: 'none', transition: 'all 0.3s' }}
+                  <button onClick={submitBooking} disabled={loading} style={{ flex: 2, padding: 13, borderRadius: 12, background: 'linear-gradient(135deg,#6c63ff,#9b55ff)', border: 'none', color: 'white', fontFamily: 'var(--font-syne)', fontWeight: 700, fontSize: '0.9rem', cursor: 'none', transition: 'all 0.3s', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                     onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 30px rgba(108,99,255,0.4)' }}
                     onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}>
-                    Submit Request →
+                    {loading ? <span style={{ width: 20, height: 20, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} /> : 'Submit Request →'}
                   </button>
                 </div>
               </>
@@ -236,9 +316,17 @@ export default function Venues() {
               <div style={{ textAlign: 'center', padding: '20px 0' }}>
                 <div style={{ fontSize: '4rem', marginBottom: 16, animation: 'popIn 0.5s cubic-bezier(0.16,1,0.3,1) both' }}>🎉</div>
                 <div style={{ fontFamily: 'var(--font-syne)', fontWeight: 800, fontSize: '1.5rem', marginBottom: 8 }}>Booking Submitted!</div>
-                <div style={{ color: 'var(--muted)', fontSize: '0.88rem', lineHeight: 1.6, marginBottom: 24 }}>Your venue booking request has been sent to the admin. You'll be notified once it's approved.</div>
+                <div style={{ color: 'var(--muted)', fontSize: '0.88rem', lineHeight: 1.6, marginBottom: 24 }}>Your venue booking request has been saved and the admin has been notified. You'll receive a confirmation once it's approved.</div>
                 <div style={{ background: 'rgba(67,233,123,0.08)', border: '1px solid rgba(67,233,123,0.2)', borderRadius: 14, padding: 16, marginBottom: 24, textAlign: 'left' }}>
-                  {[['Venue', selectedVenue?.name], ['Date', bookDate], ['Time', selectedSlot || 'Not selected'], ['Purpose', purpose || 'Not specified'], ['Status', '⏳ Pending Admin Approval']].map(([label, val]) => (
+                  {[
+                    ['Venue', selectedVenue?.name],
+                    ['Date', bookDate],
+                    ['Time', selectedSlot],
+                    ['Duration', duration],
+                    ['Purpose', purpose],
+                    ['Club', club || 'Not specified'],
+                    ['Status', '⏳ Pending Admin Approval']
+                  ].map(([label, val]) => (
                     <div key={label} style={{ display: 'flex', justifyContent: 'space-between', padding: '6px 0', fontSize: '0.82rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                       <span style={{ color: 'var(--muted)' }}>{label}</span>
                       <span style={{ fontWeight: 600, color: label === 'Status' ? '#f7c948' : 'var(--text)' }}>{val}</span>
@@ -255,6 +343,7 @@ export default function Venues() {
       <style>{`
         @keyframes fadeIn { from{opacity:0} to{opacity:1} }
         @keyframes popIn { from{transform:scale(0.9) translateY(20px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+        @keyframes spin { to{transform:rotate(360deg)} }
       `}</style>
     </>
   )

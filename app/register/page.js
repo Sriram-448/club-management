@@ -5,9 +5,9 @@ import { createBrowserClient } from '@supabase/ssr'
 
 export default function Register() {
   const supabase = createBrowserClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
-)
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  )
   const cursorRef = useRef(null)
   const ringRef = useRef(null)
   const [role, setRole] = useState('student')
@@ -69,6 +69,7 @@ export default function Register() {
     if (!form.firstName) newErrors.firstName = 'Required'
     if (!form.username) newErrors.username = 'Required'
     if (!form.email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) newErrors.email = 'Valid email required'
+    if (!form.dept) newErrors.dept = 'Please select your department'
     if (!form.password || form.password.length < 8) newErrors.password = 'Min 8 characters'
     if (form.password !== form.confirmPwd) newErrors.confirmPwd = 'Passwords do not match'
     if (!form.terms) newErrors.terms = 'Please agree to terms'
@@ -84,7 +85,7 @@ export default function Register() {
         data: {
           full_name: `${form.firstName} ${form.lastName}`,
           username: form.username,
-          role: role,
+          role: role === 'admin' ? 'student' : role, // force non-admin on signup
           department: form.dept,
         }
       }
@@ -111,10 +112,10 @@ export default function Register() {
     boxShadow: hasError ? '0 0 0 3px rgba(255,101,132,0.12)' : 'none'
   })
 
+  // Only Student and Club Head — no Admin option
   const roles = [
     { id: 'student', icon: '🎓', label: 'Student' },
     { id: 'club-head', icon: '👑', label: 'Club Head' },
-    { id: 'admin', icon: '⚙️', label: 'Admin' },
   ]
 
   const steps = [
@@ -123,6 +124,16 @@ export default function Register() {
     { n: 3, title: 'Join or create a club', sub: 'Start your journey' },
     { n: 4, title: 'Book venues & events', sub: 'All from the dashboard' },
   ]
+
+  const selectStyle = (hasError) => ({
+    width: '100%', padding: '12px 14px 12px 40px',
+    background: '#1a1a2e',
+    border: `1px solid ${hasError ? '#ff6584' : 'rgba(255,255,255,0.1)'}`,
+    borderRadius: 12, color: '#f0f0ff',
+    fontFamily: 'DM Sans, sans-serif', fontSize: '0.9rem',
+    outline: 'none', transition: 'all 0.3s',
+    WebkitAppearance: 'none', cursor: 'none',
+  })
 
   return (
     <>
@@ -146,10 +157,10 @@ export default function Register() {
           </div>
 
           <form onSubmit={handleSubmit}>
-            {/* Role selector */}
+            {/* Role selector — Student and Club Head only */}
             <div style={{ marginBottom: 20, animation: 'fadeUp 0.8s 0.3s both' }}>
               <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted)', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.3px' }}>I am a</label>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 {roles.map(r => (
                   <button key={r.id} type="button" onClick={() => setRole(r.id)}
                     style={{ padding: '14px 10px', borderRadius: 12, background: role === r.id ? 'rgba(108,99,255,0.15)' : 'rgba(255,255,255,0.04)', border: `1px solid ${role === r.id ? 'var(--accent)' : 'rgba(255,255,255,0.1)'}`, color: role === r.id ? 'var(--text)' : 'var(--muted)', fontFamily: 'DM Sans, sans-serif', fontSize: '0.82rem', fontWeight: 500, cursor: 'none', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, transition: 'all 0.25s', boxShadow: role === r.id ? '0 0 0 3px rgba(108,99,255,0.12)' : 'none' }}>
@@ -211,20 +222,21 @@ export default function Register() {
             <div style={{ marginBottom: 16, animation: 'fadeUp 0.8s 0.54s both' }}>
               <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: 'var(--muted)', marginBottom: 7, textTransform: 'uppercase', letterSpacing: '0.3px' }}>Department</label>
               <div style={{ position: 'relative' }}>
-                <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', fontSize: '0.95rem' }}>🏫</span>
-                <select value={form.dept} onChange={e => updateField('dept', e.target.value)} style={{ ...inputStyle(false), WebkitAppearance: 'none', cursor: 'none' }}
-                  onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.background = 'rgba(108,99,255,0.06)' }}
-                  onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.background = 'rgba(255,255,255,0.04)' }}>
-                  <option value="">Select your department</option>
-                  <option>Computer Science Engineering</option>
-                  <option>Electronics & Communication</option>
-                  <option>Mechanical Engineering</option>
-                  <option>Biomedical Engineering</option>
-                  <option>Civil Engineering</option>
-                  <option>Information Technology</option>
-                  <option>Other</option>
+                <span style={{ position: 'absolute', left: 13, top: '50%', transform: 'translateY(-50%)', fontSize: '0.95rem', zIndex: 1 }}>🏫</span>
+                <select value={form.dept} onChange={e => updateField('dept', e.target.value)} style={selectStyle(errors.dept)}
+                  onFocus={e => { e.target.style.borderColor = 'var(--accent)'; e.target.style.background = '#1e1e3a' }}
+                  onBlur={e => { e.target.style.borderColor = 'rgba(255,255,255,0.1)'; e.target.style.background = '#1a1a2e' }}>
+                  <option value="" style={{ background: '#1a1a2e', color: '#8888aa' }}>Select your department</option>
+                  <option style={{ background: '#1a1a2e', color: '#f0f0ff' }}>Computer Science Engineering</option>
+                  <option style={{ background: '#1a1a2e', color: '#f0f0ff' }}>Electronics & Communication</option>
+                  <option style={{ background: '#1a1a2e', color: '#f0f0ff' }}>Mechanical Engineering</option>
+                  <option style={{ background: '#1a1a2e', color: '#f0f0ff' }}>Biomedical Engineering</option>
+                  <option style={{ background: '#1a1a2e', color: '#f0f0ff' }}>Civil Engineering</option>
+                  <option style={{ background: '#1a1a2e', color: '#f0f0ff' }}>Information Technology</option>
+                  <option style={{ background: '#1a1a2e', color: '#f0f0ff' }}>Other</option>
                 </select>
               </div>
+              {errors.dept && <div style={{ fontSize: '0.72rem', color: '#ff6584', marginTop: 5 }}>{errors.dept}</div>}
             </div>
 
             {/* Password */}
@@ -287,7 +299,7 @@ export default function Register() {
           </div>
           <div style={{ position: 'absolute', bottom: 60, right: 40, zIndex: 3, background: 'rgba(15,15,34,0.92)', border: '1px solid rgba(108,99,255,0.18)', borderRadius: 14, padding: '12px 16px', backdropFilter: 'blur(12px)', animation: 'badgeFloat 6s ease-in-out infinite', animationDelay: '-4s' }}>
             <div style={{ fontSize: '0.68rem', color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: 4 }}>Free Forever</div>
-            <div style={{ fontFamily: 'var(--font-syne)', fontWeight: 700, fontSize: '1rem', color: 'var(--accent3)' }}>$0 / mo</div>
+            <div style={{ fontFamily: 'var(--font-syne)', fontWeight: 700, fontSize: '1rem', color: '#43e97b' }}>$0 / mo</div>
           </div>
 
           <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', maxWidth: 400, padding: 40 }}>
@@ -313,7 +325,7 @@ export default function Register() {
       </div>
 
       {toast && (
-        <div style={{ position: 'fixed', bottom: 32, right: 32, background: 'rgba(67,233,123,0.15)', border: '1px solid rgba(67,233,123,0.3)', borderRadius: 14, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12, fontSize: '0.88rem', color: 'var(--accent3)', zIndex: 1000, animation: 'fadeUp 0.5s both' }}>
+        <div style={{ position: 'fixed', bottom: 32, right: 32, background: 'rgba(67,233,123,0.15)', border: '1px solid rgba(67,233,123,0.3)', borderRadius: 14, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12, fontSize: '0.88rem', color: '#43e97b', zIndex: 1000, animation: 'fadeUp 0.5s both' }}>
           ✅ Account created! Check your email to verify.
         </div>
       )}
@@ -321,7 +333,9 @@ export default function Register() {
       <style>{`
         @keyframes badgeFloat { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
         @keyframes spin { to{transform:rotate(360deg)} }
+        select option { background: #1a1a2e !important; color: #f0f0ff !important; }
       `}</style>
     </>
   )
 }
+

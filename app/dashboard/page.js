@@ -1,8 +1,13 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
+import { createBrowserClient } from '@supabase/ssr'
 
 export default function Dashboard() {
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  )
   const cursorRef = useRef(null)
   const ringRef = useRef(null)
   const [activeNav, setActiveNav] = useState('dashboard')
@@ -12,6 +17,8 @@ export default function Dashboard() {
   const [counters, setCounters] = useState({ venues: 0, events: 0, members: 0, bookings: 0 })
   const [bookVenue, setBookVenue] = useState('')
   const [bookDate, setBookDate] = useState('')
+  const [user, setUser] = useState(null)
+  const [profile, setProfile] = useState(null)
 
   useEffect(() => {
     let mx = 0, my = 0, rx = 0, ry = 0
@@ -24,6 +31,22 @@ export default function Dashboard() {
       requestAnimationFrame(animate)
     }
     animate()
+
+    // Get current user
+    const getUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      if (session) {
+        setUser(session.user)
+        // Get profile from profiles table
+        const { data: profileData } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+        if (profileData) setProfile(profileData)
+      }
+    }
+    getUser()
 
     // Animate counters
     const targets = { venues: 6, events: 12, members: 248, bookings: 5 }
@@ -44,21 +67,39 @@ export default function Dashboard() {
     }
     setTimeout(() => requestAnimationFrame(step), 400)
 
-    // Set today's date
     setBookDate(new Date().toISOString().split('T')[0])
 
     return () => document.removeEventListener('mousemove', move)
   }, [])
 
-  const handleRsvp = (id) => {
-    setRsvp(prev => ({ ...prev, [id]: !prev[id] }))
-  }
+  const handleRsvp = (id) => setRsvp(prev => ({ ...prev, [id]: !prev[id] }))
 
   const handleBooking = () => {
     if (!bookVenue || !bookDate) { alert('Please select a venue and date!'); return }
     setBookToast(true)
     setTimeout(() => setBookToast(false), 3000)
   }
+
+  // Get display name
+  const firstName = profile?.full_name?.split(' ')[0]
+    || user?.user_metadata?.full_name?.split(' ')[0]
+    || user?.email?.split('@')[0]
+    || 'there'
+
+  const fullName = profile?.full_name
+    || user?.user_metadata?.full_name
+    || user?.email?.split('@')[0]
+    || 'User'
+
+  const userRole = profile?.role
+    || user?.user_metadata?.role
+    || 'student'
+
+  const avatarLetter = fullName?.[0]?.toUpperCase() || 'U'
+
+  // Get greeting based on time
+  const hour = new Date().getHours()
+  const greeting = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
 
   const navItems = [
     { id: 'dashboard', icon: '🏠', label: 'Dashboard', href: '/dashboard' },
@@ -98,7 +139,7 @@ export default function Dashboard() {
   ]
 
   const activity = [
-    { av: 'S', avBg: 'rgba(108,99,255,0.2)', avColor: '#6c63ff', text: <><strong>You</strong> booked Faraday Hall for Mar 15</>, time: 'Today, 9:30 AM' },
+    { av: avatarLetter, avBg: 'rgba(108,99,255,0.2)', avColor: '#6c63ff', text: <><strong>You</strong> booked Faraday Hall for Mar 15</>, time: 'Today, 9:30 AM' },
     { av: 'P', avBg: 'rgba(67,233,123,0.2)', avColor: '#43e97b', text: <><strong>Priya</strong> joined your club</>, time: 'Today, 8:15 AM' },
     { av: 'R', avBg: 'rgba(255,101,132,0.2)', avColor: '#ff6584', text: <><strong>Rahul</strong> created a new event</>, time: 'Yesterday' },
     { av: 'A', avBg: 'rgba(247,201,72,0.2)', avColor: '#f7c948', text: <><strong>Admin</strong> approved your booking</>, time: '2 days ago' },
@@ -109,7 +150,10 @@ export default function Dashboard() {
     { h: '50%', day: 'Thu' }, { h: '75%', day: 'Fri' }, { h: '30%', day: 'Sat' }, { h: '20%', day: 'Sun' },
   ]
 
-  const sectionLabels = { clubs: 'Club', admin: 'Account' }
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
+    window.location.href = '/login'
+  }
 
   return (
     <>
@@ -126,8 +170,11 @@ export default function Dashboard() {
           </div>
 
           <div style={{ padding: '14px 18px', margin: 12, background: 'rgba(108,99,255,0.08)', border: '1px solid var(--border)', borderRadius: 14, display: 'flex', alignItems: 'center', gap: 12 }}>
-            <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg,#6c63ff,#ff6584)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-syne)', fontWeight: 800, fontSize: '1rem', flexShrink: 0 }}>S</div>
-            <div><strong style={{ display: 'block', fontSize: '0.85rem' }}>Sriram</strong><span style={{ fontSize: '0.72rem', color: '#43e97b' }}>● Club Head</span></div>
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg,#6c63ff,#ff6584)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-syne)', fontWeight: 800, fontSize: '1rem', flexShrink: 0 }}>{avatarLetter}</div>
+            <div>
+              <strong style={{ display: 'block', fontSize: '0.85rem' }}>{fullName}</strong>
+              <span style={{ fontSize: '0.72rem', color: '#43e97b', textTransform: 'capitalize' }}>● {userRole}</span>
+            </div>
             <div style={{ marginLeft: 'auto', width: 8, height: 8, background: '#43e97b', borderRadius: '50%', animation: 'blink 1.5s infinite' }} />
           </div>
 
@@ -154,7 +201,7 @@ export default function Dashboard() {
           </nav>
 
           <div style={{ padding: '16px 12px', borderTop: '1px solid var(--border)' }}>
-            <button onClick={() => window.location.href = '/login'} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 12, color: '#ff6584', fontSize: '0.88rem', fontWeight: 500, cursor: 'none', background: 'none', border: 'none', width: '100%', fontFamily: 'DM Sans, sans-serif', transition: 'all 0.25s' }}
+            <button onClick={handleLogout} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '11px 14px', borderRadius: 12, color: '#ff6584', fontSize: '0.88rem', fontWeight: 500, cursor: 'none', background: 'none', border: 'none', width: '100%', fontFamily: 'DM Sans, sans-serif', transition: 'all 0.25s' }}
               onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,101,132,0.1)'}
               onMouseLeave={e => e.currentTarget.style.background = 'none'}>
               <span>🚪</span> Logout
@@ -167,7 +214,10 @@ export default function Dashboard() {
 
           {/* Topbar */}
           <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(3,3,10,0.9)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--border)', padding: '0 36px', height: 68, display: 'flex', alignItems: 'center', gap: 20, animation: 'slideDown 0.6s cubic-bezier(0.16,1,0.3,1) both' }}>
-            <div><div style={{ fontFamily: 'var(--font-syne)', fontWeight: 700, fontSize: '1.1rem' }}>Dashboard</div><div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: 1 }}>Thursday, March 2026</div></div>
+            <div>
+              <div style={{ fontFamily: 'var(--font-syne)', fontWeight: 700, fontSize: '1.1rem' }}>Dashboard</div>
+              <div style={{ fontSize: '0.78rem', color: 'var(--muted)', marginTop: 1 }}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', year: 'numeric' })}</div>
+            </div>
             <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: 14 }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', borderRadius: 10, padding: '8px 14px', width: 220 }}>
                 <span style={{ color: 'var(--muted)', fontSize: '0.9rem' }}>🔍</span>
@@ -182,7 +232,11 @@ export default function Dashboard() {
                     <div style={{ fontFamily: 'var(--font-syne)', fontWeight: 700, fontSize: '0.95rem', marginBottom: 14, display: 'flex', justifyContent: 'space-between' }}>
                       Notifications <span style={{ fontSize: '0.72rem', color: 'var(--accent)', cursor: 'none' }} onClick={() => setNotifOpen(false)}>Clear all</span>
                     </div>
-                    {[{ icon: '🏛️', text: 'Booking Approved', sub: 'Main Auditorium confirmed for Mar 10', time: '2 hours ago' }, { icon: '🎉', text: 'New Event', sub: 'Hackathon 2026 has been published', time: '5 hours ago' }, { icon: '👥', text: 'New Member', sub: 'Priya joined your club', time: 'Yesterday' }].map((n, i) => (
+                    {[
+                      { icon: '🏛️', text: 'Booking Approved', sub: 'Main Auditorium confirmed for Mar 10', time: '2 hours ago' },
+                      { icon: '🎉', text: 'New Event', sub: 'Hackathon 2026 has been published', time: '5 hours ago' },
+                      { icon: '👥', text: 'New Member', sub: 'Someone joined your club', time: 'Yesterday' }
+                    ].map((n, i) => (
                       <div key={i} style={{ display: 'flex', gap: 10, padding: '10px 0', borderBottom: i < 2 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
                         <div style={{ width: 32, height: 32, background: 'rgba(108,99,255,0.1)', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{n.icon}</div>
                         <div style={{ fontSize: '0.78rem', lineHeight: 1.5 }}><strong style={{ display: 'block' }}>{n.text}</strong>{n.sub}<span style={{ display: 'block', fontSize: '0.68rem', color: 'var(--muted)', marginTop: 2 }}>{n.time}</span></div>
@@ -191,7 +245,7 @@ export default function Dashboard() {
                   </div>
                 )}
               </div>
-              <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg,#6c63ff,#ff6584)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-syne)', fontWeight: 800, fontSize: '0.9rem' }}>S</div>
+              <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg,#6c63ff,#ff6584)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-syne)', fontWeight: 800, fontSize: '0.9rem' }}>{avatarLetter}</div>
             </div>
           </div>
 
@@ -202,7 +256,7 @@ export default function Dashboard() {
             <div style={{ background: 'linear-gradient(135deg,rgba(108,99,255,0.15),rgba(255,101,132,0.08))', border: '1px solid rgba(108,99,255,0.2)', borderRadius: 20, padding: '28px 32px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 28, position: 'relative', overflow: 'hidden', animation: 'fadeUp 0.6s 0.1s both' }}>
               <div style={{ position: 'absolute', top: '-60%', right: '-5%', width: 300, height: 300, background: 'radial-gradient(ellipse,rgba(108,99,255,0.15),transparent 70%)', pointerEvents: 'none' }} />
               <div>
-                <h2 style={{ fontFamily: 'var(--font-syne)', fontWeight: 800, fontSize: '1.5rem', letterSpacing: -0.5, marginBottom: 6 }}>Good morning, Sriram! 👋</h2>
+                <h2 style={{ fontFamily: 'var(--font-syne)', fontWeight: 800, fontSize: '1.5rem', letterSpacing: -0.5, marginBottom: 6 }}>{greeting}, {firstName}! 👋</h2>
                 <p style={{ color: 'var(--muted)', fontSize: '0.88rem' }}>You have 2 pending bookings and 3 upcoming events this week.</p>
               </div>
               <div style={{ display: 'flex', gap: 10, position: 'relative', zIndex: 2 }}>
@@ -243,7 +297,7 @@ export default function Dashboard() {
                   </div>
                   <div style={{ height: 120, display: 'flex', alignItems: 'flex-end', gap: 6, padding: '0 4px' }}>
                     {bars.map((b, i) => (
-                      <div key={i} style={{ flex: 1, height: b.h, borderRadius: '6px 6px 0 0', background: b.active ? 'linear-gradient(to top,#6c63ff,#ff6584)' : 'rgba(108,99,255,0.3)', transition: 'all 0.4s', animation: `barGrow 0.8s ${0.5 + i * 0.05}s cubic-bezier(0.16,1,0.3,1) both` }}
+                      <div key={i} style={{ flex: 1, height: b.h, borderRadius: '6px 6px 0 0', background: b.active ? 'linear-gradient(to top,#6c63ff,#ff6584)' : 'rgba(108,99,255,0.3)', transition: 'all 0.4s' }}
                         onMouseEnter={e => { if (!b.active) e.currentTarget.style.background = 'var(--accent)' }}
                         onMouseLeave={e => { if (!b.active) e.currentTarget.style.background = 'rgba(108,99,255,0.3)' }} />
                     ))}
@@ -261,7 +315,7 @@ export default function Dashboard() {
                   </div>
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 20 }}>
                     {venues.map(v => (
-                      <div key={v.name} style={{ background: 'var(--card2)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'flex', alignItems: 'center', gap: 14, transition: 'all 0.3s', borderLeft: `3px solid ${v.status === 'free' ? '#43e97b' : '#ff6584'}` }}
+                      <div key={v.name} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'flex', alignItems: 'center', gap: 14, transition: 'all 0.3s', borderLeft: `3px solid ${v.status === 'free' ? '#43e97b' : '#ff6584'}` }}
                         onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(108,99,255,0.3)'; e.currentTarget.style.transform = 'translateX(3px)' }}
                         onMouseLeave={e => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.transform = '' }}>
                         <div style={{ fontSize: '1.6rem', flexShrink: 0 }}>{v.emoji}</div>
@@ -283,7 +337,7 @@ export default function Dashboard() {
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {events.map(ev => (
-                      <div key={ev.id} style={{ background: 'var(--card2)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'flex', alignItems: 'center', gap: 14, transition: 'all 0.3s' }}
+                      <div key={ev.id} style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 14, padding: 16, display: 'flex', alignItems: 'center', gap: 14, transition: 'all 0.3s' }}
                         onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(108,99,255,0.3)'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 24px rgba(0,0,0,0.3)' }}
                         onMouseLeave={e => { e.currentTarget.style.borderColor = ''; e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}>
                         <div style={{ width: 44, height: 44, borderRadius: 12, background: 'rgba(108,99,255,0.15)', border: '1px solid rgba(108,99,255,0.2)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -313,22 +367,20 @@ export default function Dashboard() {
                 <div style={{ background: 'var(--card)', border: '1px solid var(--border)', borderRadius: 18, padding: 22, animation: 'fadeUp 0.6s 0.3s both' }}>
                   <div style={{ fontFamily: 'var(--font-syne)', fontWeight: 700, fontSize: '1rem', marginBottom: 16 }}>⚡ Quick Book</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {[
-                      <select key="venue" value={bookVenue} onChange={e => setBookVenue(e.target.value)} style={{ width: '100%', padding: '11px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: 'var(--text)', fontFamily: 'DM Sans, sans-serif', fontSize: '0.85rem', outline: 'none', WebkitAppearance: 'none', cursor: 'none' }}>
-                        <option value="">🏛️ Select Venue</option>
-                        <option>Mini Hall - 1</option><option>J.C. Bose Hall</option><option>Faraday Hall</option><option>Main Auditorium</option>
-                      </select>,
-                      <input key="date" type="date" value={bookDate} onChange={e => setBookDate(e.target.value)} style={{ width: '100%', padding: '11px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: 'var(--text)', fontFamily: 'DM Sans, sans-serif', fontSize: '0.85rem', outline: 'none' }} />,
-                      <select key="purpose" style={{ width: '100%', padding: '11px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: 'var(--text)', fontFamily: 'DM Sans, sans-serif', fontSize: '0.85rem', outline: 'none', WebkitAppearance: 'none', cursor: 'none' }}>
-                        <option value="">🎯 Purpose</option>
-                        <option>Club Meeting</option><option>Hackathon</option><option>Workshop</option><option>Cultural Event</option>
-                      </select>
-                    ]}
-                    <button onClick={handleBooking} style={{ padding: 12, borderRadius: 10, background: 'linear-gradient(135deg,#6c63ff,#9b55ff)', border: 'none', color: 'white', fontFamily: 'var(--font-syne)', fontWeight: 700, fontSize: '0.9rem', cursor: 'none', transition: 'all 0.3s' }}
+                    <select value={bookVenue} onChange={e => setBookVenue(e.target.value)} style={{ width: '100%', padding: '11px 14px', background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#f0f0ff', fontFamily: 'DM Sans, sans-serif', fontSize: '0.85rem', outline: 'none', WebkitAppearance: 'none', cursor: 'none' }}>
+                      <option value="">🏛️ Select Venue</option>
+                      <option>Mini Hall - 1</option><option>J.C. Bose Hall</option><option>Faraday Hall</option><option>Main Auditorium</option>
+                    </select>
+                    <input type="date" value={bookDate} onChange={e => setBookDate(e.target.value)} style={{ width: '100%', padding: '11px 14px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: 'var(--text)', fontFamily: 'DM Sans, sans-serif', fontSize: '0.85rem', outline: 'none' }} />
+                    <select style={{ width: '100%', padding: '11px 14px', background: '#1a1a2e', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: '#f0f0ff', fontFamily: 'DM Sans, sans-serif', fontSize: '0.85rem', outline: 'none', WebkitAppearance: 'none', cursor: 'none' }}>
+                      <option value="">🎯 Purpose</option>
+                      <option>Club Meeting</option><option>Hackathon</option><option>Workshop</option><option>Cultural Event</option>
+                    </select>
+                    <Link href="/venues" style={{ padding: 12, borderRadius: 10, background: 'linear-gradient(135deg,#6c63ff,#9b55ff)', border: 'none', color: 'white', fontFamily: 'var(--font-syne)', fontWeight: 700, fontSize: '0.9rem', cursor: 'none', transition: 'all 0.3s', textAlign: 'center', textDecoration: 'none', display: 'block' }}
                       onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 10px 28px rgba(108,99,255,0.4)' }}
                       onMouseLeave={e => { e.currentTarget.style.transform = ''; e.currentTarget.style.boxShadow = '' }}>
-                      Request Booking →
-                    </button>
+                      Book a Venue →
+                    </Link>
                   </div>
                 </div>
 
@@ -375,7 +427,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Booking toast */}
       {bookToast && (
         <div style={{ position: 'fixed', bottom: 32, right: 32, background: 'rgba(67,233,123,0.15)', border: '1px solid rgba(67,233,123,0.3)', borderRadius: 14, padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 12, fontSize: '0.88rem', color: '#43e97b', zIndex: 1000, animation: 'fadeUp 0.5s both' }}>
           ✅ Booking request submitted!
@@ -384,7 +435,6 @@ export default function Dashboard() {
 
       <style>{`
         @keyframes barGrow { from{transform:scaleY(0);transform-origin:bottom} to{transform:scaleY(1);transform-origin:bottom} }
-        .card2 { background: var(--card2); }
       `}</style>
     </>
   )
