@@ -138,10 +138,11 @@ export default function Venues() {
   const navItems = [
     { icon: '🏠', label: 'Dashboard', href: '/dashboard' },
     { icon: '🏛️', label: 'Venues', href: '/venues', active: true },
-    { icon: '🎉', label: 'Events', href: '#' },
-    { icon: '👥', label: 'Members', href: '#' },
-    { icon: '📋', label: 'My Bookings', href: '#' },
+    { icon: '🎉', label: 'Events', href: '/events' },
+    { icon: '📋', label: 'My Bookings', href: '/bookings' },
+    { icon: '👤', label: 'Profile', href: '/profile' },
     { icon: '⚙️', label: 'Admin Panel', href: '/admin' },
+  
   ]
 
   return (

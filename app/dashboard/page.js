@@ -104,15 +104,12 @@ export default function Dashboard() {
   const navItems = [
     { id: 'dashboard', icon: '🏠', label: 'Dashboard', href: '/dashboard' },
     { id: 'venues', icon: '🏛️', label: 'Venues', href: '/venues', badge: '4 Free', badgeColor: 'rgba(67,233,123,0.15)', badgeText: '#43e97b' },
-    { id: 'events', icon: '🎉', label: 'Events', href: '#', badge: '12', badgeColor: 'rgba(108,99,255,0.2)', badgeText: '#a89cff' },
-    { id: 'members', icon: '👥', label: 'Members', href: '#' },
-    { id: 'bookings', icon: '📋', label: 'My Bookings', href: '#', badge: '2', badgeColor: 'rgba(255,101,132,0.15)', badgeText: '#ff6584' },
-    { id: 'clubs', icon: '🏆', label: 'My Clubs', href: '#', section: 'Club' },
-    { id: 'announcements', icon: '📢', label: 'Announcements', href: '#' },
-    { id: 'analytics', icon: '📊', label: 'Analytics', href: '#' },
+    { id: 'events', icon: '🎉', label: 'Events', href: '/events', badge: '12', badgeColor: 'rgba(108,99,255,0.2)', badgeText: '#a89cff' },
+    { id: 'bookings', icon: '📋', label: 'My Bookings', href: '/bookings', badge: '2', badgeColor: 'rgba(255,101,132,0.15)', badgeText: '#ff6584' },
+    { id: 'profile', icon: '👤', label: 'Profile', href: '/profile', section: 'Account' },
+    { id: 'notifications', icon: '🔔', label: 'Notifications', href: '/notifications', badge: '3', badgeColor: 'rgba(255,101,132,0.15)', badgeText: '#ff6584', section: 'Account' },
     { id: 'admin', icon: '⚙️', label: 'Admin Panel', href: '/admin', section: 'Account' },
-    { id: 'profile', icon: '👤', label: 'Profile', href: '#' },
-    { id: 'notifications', icon: '🔔', label: 'Notifications', href: '#', badge: '3', badgeColor: 'rgba(255,101,132,0.15)', badgeText: '#ff6584' },
+  
   ]
 
   const venues = [
