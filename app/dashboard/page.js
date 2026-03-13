@@ -88,8 +88,8 @@ export default function Dashboard() {
 
   const announcements = [
     { dot: '#ff6584', title: 'Hippocrates Auditorium Occupied', desc: 'Booked till Friday 6PM.', time: '2 hours ago' },
-    { dot: '#43e97b', title: 'New Venue Available', desc: 'Mini Hall - 2 is now open.', time: 'Yesterday' },
-    { dot: '#f7c948', title: 'Booking Window Open', desc: 'April slots are now open!', time: '2 days ago' },
+    { dot: '#f7c948', title: 'Booking Window Open', desc: 'April slots are now open! Book early.', time: '2 days ago' },
+    { dot: '#43e97b', title: 'New Event Published', desc: 'AI & ML Summit on Mar 25 — RSVP now!', time: '3 days ago' },
   ]
 
   const bars = [

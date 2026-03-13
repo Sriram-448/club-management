@@ -36,7 +36,8 @@ export default function Venues() {
       requestAnimationFrame(animate)
     }
     animate()
-    setBookDate(new Date().toISOString().split('T')[0])
+    const today = new Date().toISOString().split('T')[0]
+    setBookDate(today)
     const getUser = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       if (session) setUser(session.user)
@@ -46,12 +47,12 @@ export default function Venues() {
   }, [])
 
   const venues = [
-    { id: 1, emoji: '🏟️', name: 'Main Auditorium', cap: '2,000', block: 'Block A', status: 'busy', next: 'Mar 10', tags: ['Conferences', 'Hackathons'], bg: 'linear-gradient(135deg,#1a1a3e,#2d1b69)', slots: 0 },
+    { id: 1, emoji: '🏟️', name: 'Main Auditorium', cap: '2,000', block: 'Block A', status: 'busy', next: 'Mar 20', tags: ['Conferences', 'Hackathons'], bg: 'linear-gradient(135deg,#1a1a3e,#2d1b69)', slots: 0 },
     { id: 2, emoji: '🎭', name: 'Mini Hall - 1', cap: '500', block: 'Block B', status: 'free', tags: ['Seminars', 'Cultural'], bg: 'linear-gradient(135deg,#1a2e1a,#1b4d2d)', slots: 3 },
     { id: 3, emoji: '🔬', name: 'Sir J.C. Bose Hall', cap: '800', block: 'Block C', status: 'free', tags: ['Tech Events', 'Lectures'], bg: 'linear-gradient(135deg,#2e1a1a,#4d1b1b)', slots: 5 },
     { id: 4, emoji: '⚡', name: 'Faraday Hall', cap: '600', block: 'Block D', status: 'free', tags: ['Workshops'], bg: 'linear-gradient(135deg,#1a2a2e,#1b3d4d)', slots: 4 },
-    { id: 5, emoji: '🏗️', name: 'G.D. Naidu Hall', cap: '1,000', block: 'Block E', status: 'busy', next: 'Mar 12', tags: ['Annual Events'], bg: 'linear-gradient(135deg,#2a1a2e,#3d1b4d)', slots: 0 },
-    { id: 6, emoji: '🏥', name: 'Hippocrates Aud.', cap: '1,200', block: 'Block F', status: 'busy', next: 'Mar 15', tags: ['Medical Events'], bg: 'linear-gradient(135deg,#2e2a1a,#4d3d1b)', slots: 0 },
+    { id: 5, emoji: '🏗️', name: 'G.D. Naidu Hall', cap: '1,000', block: 'Block E', status: 'busy', next: 'Mar 18', tags: ['Annual Events'], bg: 'linear-gradient(135deg,#2a1a2e,#3d1b4d)', slots: 0 },
+    { id: 6, emoji: '🏥', name: 'Hippocrates Aud.', cap: '1,200', block: 'Block F', status: 'busy', next: 'Mar 16', tags: ['Medical Events'], bg: 'linear-gradient(135deg,#2e2a1a,#4d3d1b)', slots: 0 },
   ]
 
   const timeSlots = ['9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM']
@@ -188,7 +189,7 @@ export default function Venues() {
 
                 <div style={{ marginBottom: 14 }}>
                   <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--muted)', marginBottom: 7, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Date *</label>
-                  <input type="date" value={bookDate} onChange={e => setBookDate(e.target.value)} style={{ width: '100%', padding: '11px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: 'var(--text)', fontFamily: 'DM Sans,sans-serif', fontSize: '0.85rem', outline: 'none' }} />
+                  <input type="date" value={bookDate} min={new Date().toISOString().split('T')[0]} onChange={e => { setBookDate(e.target.value); setSelectedSlot('') }} style={{ width: '100%', padding: '11px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: 'var(--text)', fontFamily: 'DM Sans,sans-serif', fontSize: '0.85rem', outline: 'none' }} />
                 </div>
 
                 <div style={{ marginBottom: 14 }}>
@@ -196,14 +197,21 @@ export default function Venues() {
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
                     {timeSlots.map(slot => {
                       const taken = takenSlots.includes(slot)
+                      const isToday = bookDate === new Date().toISOString().split('T')[0]
+                      const slotHour = parseInt(slot.split(':')[0]) + (slot.includes('PM') && !slot.startsWith('12') ? 12 : 0)
+                      const currentHour = new Date().getHours()
+                      const isPast = isToday && slotHour <= currentHour
+                      const disabled = taken || isPast
                       const selected = selectedSlot === slot
                       return (
-                        <button key={slot} onClick={() => !taken && setSelectedSlot(slot)} style={{ padding: '6px 12px', borderRadius: 7, border: '1px solid', borderColor: selected ? 'var(--accent)' : taken ? 'rgba(255,101,132,0.2)' : 'var(--border)', background: selected ? 'rgba(108,99,255,0.2)' : taken ? 'rgba(255,101,132,0.08)' : 'rgba(255,255,255,0.04)', fontSize: '0.75rem', color: selected ? 'var(--text)' : taken ? 'rgba(255,101,132,0.5)' : 'var(--muted)', cursor: taken ? 'not-allowed' : 'none', textDecoration: taken ? 'line-through' : 'none', transition: 'all 0.2s' }}>
-                          {slot}
+                        <button key={slot} onClick={() => !disabled && setSelectedSlot(slot)} style={{ padding: '6px 12px', borderRadius: 7, border: '1px solid', borderColor: selected ? 'var(--accent)' : disabled ? 'rgba(255,101,132,0.2)' : 'var(--border)', background: selected ? 'rgba(108,99,255,0.2)' : disabled ? 'rgba(255,101,132,0.08)' : 'rgba(255,255,255,0.04)', fontSize: '0.75rem', color: selected ? 'var(--text)' : disabled ? 'rgba(255,101,132,0.4)' : 'var(--muted)', cursor: disabled ? 'not-allowed' : 'none', textDecoration: disabled ? 'line-through' : 'none', transition: 'all 0.2s', position: 'relative' }}
+                          title={isPast ? 'This time slot has already passed' : taken ? 'Already booked' : ''}>
+                          {slot}{isPast && !taken ? ' ⏰' : ''}
                         </button>
                       )
                     })}
                   </div>
+                  {bookDate === new Date().toISOString().split('T')[0] && <div style={{ fontSize: '0.7rem', color: 'var(--muted)', marginTop: 6 }}>⏰ Crossed out slots have already passed today</div>}
                 </div>
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 14 }}>
