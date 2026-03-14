@@ -1,12 +1,12 @@
-# ⚡ SRMIST Club Portal
+#  SRMIST Club Portal
 
-A full-stack web application built to digitize and streamline club management at SRM Institute of Science and Technology. Students can book venues, view events, and manage their club activities — all from one platform.
+A full-stack web application built to digitize and streamline club management at SRM Institute of Science and Technology. Students can book venues, view events, and manage their club activities all from one platform.
 
-🌐 **Live Demo:** https://srmist-club-portal.vercel.app
+ **Live Demo:** https://srmist-club-portal.vercel.app
 
 ---
 
-## 📸 Screenshots
+## Screenshots
 
 | Dashboard | Venues | Admin Panel |
 |---|---|---|
@@ -14,17 +14,17 @@ A full-stack web application built to digitize and streamline club management at
 
 ---
 
-## 🚀 Features
+## Features
 
-- 🔐 **Authentication** — Secure login and registration with Supabase Auth
-- 🏛️ **Venue Booking** — Browse all campus venues, check availability, and submit booking requests
-- 🎉 **Events** — View upcoming club events and RSVP
-- 📋 **My Bookings** — Track all your booking requests and their status
-- 👤 **Profile** — Edit your name, username, and department
-- 🔔 **Notifications** — Get updates on booking approvals and events
-- ⚙️ **Admin Panel** — Approve/reject bookings and manage user roles
-- 📱 **Mobile Responsive** — Works on all screen sizes with hamburger menu
-- 🔒 **Role-Based Access** — Student, Club Head, and Admin roles with different permissions
+- **Authentication** - Secure login and registration with Supabase Auth
+-  **Venue Booking** - Browse all campus venues, check availability, and submit booking requests
+-  **Events** - View upcoming club events and RSVP
+-  **My Bookings** - Track all your booking requests and their status
+-  **Profile** - Edit your name, username, and department
+-  **Notifications** - Get updates on booking approvals and events
+-  **Admin Panel** - Approve/reject bookings and manage user roles
+-  **Mobile Responsive** - Works on all screen sizes with hamburger menu
+-  **Role-Based Access** - Student, Club Head, and Admin roles with different permissions
 
 ---
 
@@ -66,6 +66,8 @@ club-management/
 ```
 
 ---
+
+
 
 ## 🗄️ Database Schema
 
@@ -190,7 +192,7 @@ Vercel auto-deploys in ~2 minutes.
 ## 🔒 Security
 
 - **Row Level Security (RLS)** enforced at the database level in Supabase
-- Admin role cannot be set from the registration form — only assignable from the Admin Panel
+- Admin role cannot be set from the registration form - only assignable from the Admin Panel
 - All protected routes require authentication via `proxy.js`
 - Passwords hashed and managed by Supabase Auth
 
