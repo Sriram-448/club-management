@@ -54,7 +54,7 @@ export default function Admin() {
         if (bookingsData && usersData) {
           const enriched = bookingsData.map(b => ({
             ...b,
-            profiles: usersData.find(u => u.id === b.user_id) || null
+            profiles: usersData.find(u => u.id?.trim() === b.user_id?.trim()) || null
           }))
           setBookings(enriched)
         }
