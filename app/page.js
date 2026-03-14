@@ -79,7 +79,7 @@ export default function Login() {
           </div>
 
           <div style={{ position: 'relative', zIndex: 2, textAlign: 'center', padding: 40, maxWidth: 420 }}>
-            <div style={{ width: 60, height: 60, background: 'linear-gradient(135deg,#6c63ff,#ff6584)', borderRadius: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', margin: '0 auto 24px', boxShadow: '0 12px 40px rgba(108,99,255,0.4)' }}>⚡</div>
+            <img src="/srm-logo.png" alt="SRM Logo" style={{ width: 60, height: 60, objectFit: 'contain', margin: '0 auto 24px', display: 'block' }} />
             <h1 style={{ fontFamily: 'var(--font-syne)', fontWeight: 800, fontSize: 'clamp(1.8rem,3vw,2.4rem)', letterSpacing: -1.5, marginBottom: 14, lineHeight: 1.1 }}>
               Welcome back to<br />
               <span style={{ background: 'linear-gradient(135deg,#6c63ff,#ff6584)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>your hub.</span>
@@ -112,7 +112,7 @@ export default function Login() {
 
           {/* Mobile logo — only shown on mobile */}
           <div className="mobile-logo" style={{ display: 'none', alignItems: 'center', gap: 12, marginBottom: 32 }}>
-            <div style={{ width: 42, height: 42, background: 'linear-gradient(135deg,#6c63ff,#ff6584)', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>⚡</div>
+            <img src="/srm-logo.png" alt="SRM Logo" style={{ width: 42, height: 42, objectFit: 'contain' }} />
             <div style={{ fontFamily: 'var(--font-syne)', fontWeight: 800, fontSize: '1.1rem' }}>SRMIST Portal</div>
           </div>
 
