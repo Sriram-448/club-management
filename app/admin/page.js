@@ -210,8 +210,8 @@ export default function Admin() {
                               {b.profiles?.full_name?.[0]?.toUpperCase() || b.profiles?.email?.[0]?.toUpperCase() || 'U'}
                             </div>
                             <div>
-                              <div style={{ fontSize: '0.78rem', fontWeight: 600 }}>{b.profiles?.full_name || 'Unknown User'}</div>
-                              <div style={{ fontSize: '0.65rem', color: 'var(--muted)' }}>{b.profiles?.email}</div>
+                              <div style={{ fontSize: '0.78rem', fontWeight: 600 }}>{b.profiles?.full_name || b.profiles?.email?.split('@')[0] || 'Unknown User'}</div>
+                              <div style={{ fontSize: '0.65rem', color: 'var(--muted)' }}>{b.profiles?.email || b.user_id}</div>
                             </div>
                           </div>
 
