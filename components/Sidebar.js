@@ -46,7 +46,7 @@ export default function Sidebar({ activePage = 'dashboard' }) {
   const SidebarContent = () => (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
       <div style={{ padding: '24px 20px', display: 'flex', alignItems: 'center', gap: 12, borderBottom: '1px solid var(--border)' }}>
-        <div style={{ width: 38, height: 38, background: 'linear-gradient(135deg,#6c63ff,#ff6584)', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem', flexShrink: 0 }}>⚡</div>
+        <img src="/srm-logo.png" alt="SRM Logo" style={{ width: 38, height: 38, objectFit: 'contain', flexShrink: 0 }} />
         <div style={{ fontFamily: 'var(--font-syne)', fontWeight: 800, fontSize: '0.95rem' }}>SRMIST Portal
           <span style={{ display: 'block', fontSize: '0.65rem', fontWeight: 400, color: 'var(--muted)', fontFamily: 'DM Sans,sans-serif' }}>Club Management System</span>
         </div>
