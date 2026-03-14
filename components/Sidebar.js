@@ -17,23 +17,14 @@ export default function Sidebar({ activePage = 'dashboard' }) {
       const { data: { session } } = await supabase.auth.getSession()
       if (session) {
         setUser(session.user)
-        // Check localStorage cache first for instant display
-        const cached = localStorage.getItem('userProfile')
-        if (cached) setProfile(JSON.parse(cached))
-        // Always fetch fresh from DB
-        const { data } = await supabase.from('profiles')
-
-        if (data) {
-          setProfile(data)
-          localStorage.setItem('userProfile', JSON.stringify(data))
-        }
+        const { data } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
+        if (data) setProfile(data)
       }
     }
     getUser()
   }, [])
 
   const handleLogout = async () => {
-    localStorage.removeItem('userProfile')
     await supabase.auth.signOut()
     window.location.href = '/login'
   }
