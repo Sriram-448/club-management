@@ -21,10 +21,8 @@ export default function Sidebar({ activePage = 'dashboard' }) {
         const cached = localStorage.getItem('userProfile')
         if (cached) setProfile(JSON.parse(cached))
         // Always fetch fresh from DB
-        const { data, error } = await supabase.from('profiles').select('*').eq('id', session.user.id).single()
-console.log('Profile data:', data)
-console.log('Profile error:', error)
-console.log('User ID:', session.user.id)
+        const { data } = await supabase.from('profiles')
+
         if (data) {
           setProfile(data)
           localStorage.setItem('userProfile', JSON.stringify(data))
