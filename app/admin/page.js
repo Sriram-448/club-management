@@ -1,6 +1,5 @@
 'use client'
 import { useEffect, useRef, useState } from 'react'
-import Link from 'next/link'
 import { createBrowserClient } from '@supabase/ssr'
 import Sidebar from '@/components/Sidebar'
 
@@ -37,24 +36,25 @@ export default function Admin() {
       if (session) {
         setUser(session.user)
 
-        // Get all bookings with venue info only
-        const { data: bookingsData } = await supabase
-          .from('bookings')
-          .select(`*, venues(name, emoji)`)
-          .order('created_at', { ascending: false })
-
-        // Get all profiles separately
+        // Fetch profiles first
         const { data: usersData } = await supabase
           .from('profiles')
-          .select('*')
-          .order('created_at', { ascending: false })
+          .select('id, full_name, email, username, role, department')
         if (usersData) setUsers(usersData)
 
-        // Manually attach profile to each booking by matching user_id
-        if (bookingsData && usersData) {
+        // Fetch bookings with venue info
+        const { data: bookingsData } = await supabase
+          .from('bookings')
+          .select('*, venues(name, emoji)')
+          .order('created_at', { ascending: false })
+
+        // Merge bookings with profile data
+        if (bookingsData) {
+          const profileMap = {}
+          if (usersData) usersData.forEach(p => { profileMap[p.id] = p })
           const enriched = bookingsData.map(b => ({
             ...b,
-            profiles: usersData.find(u => u.id?.trim() === b.user_id?.trim()) || null
+            profiles: profileMap[b.user_id] || null
           }))
           setBookings(enriched)
         }
@@ -72,7 +72,6 @@ export default function Admin() {
       .from('bookings')
       .update({ status })
       .eq('id', bookingId)
-
     if (!error) {
       setBookings(prev => prev.map(b => b.id === bookingId ? { ...b, status } : b))
       setToast({ message: `Booking ${status}!`, color: status === 'approved' ? '#43e97b' : '#ff6584' })
@@ -86,7 +85,6 @@ export default function Admin() {
       .from('profiles')
       .update({ role })
       .eq('id', userId)
-
     if (!error) {
       setUsers(prev => prev.map(u => u.id === userId ? { ...u, role } : u))
       setToast({ message: `Role updated to ${role}!`, color: '#43e97b' })
@@ -207,23 +205,28 @@ export default function Admin() {
                         <div style={{ marginTop: 14, paddingTop: 14, borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <div style={{ width: 30, height: 30, borderRadius: 8, background: 'rgba(108,99,255,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-syne)', fontWeight: 800, fontSize: '0.8rem', color: '#6c63ff' }}>
-                              {b.profiles?.full_name?.[0]?.toUpperCase() || b.profiles?.email?.[0]?.toUpperCase() || 'U'}
+                              {b.profiles?.full_name?.[0]?.toUpperCase() || b.profiles?.email?.[0]?.toUpperCase() || '?'}
                             </div>
                             <div>
-                              <div style={{ fontSize: '0.78rem', fontWeight: 600 }}>{b.profiles?.full_name || b.profiles?.email?.split('@')[0] || 'Unknown User'}</div>
-                              <div style={{ fontSize: '0.65rem', color: 'var(--muted)' }}>{b.profiles?.email || b.user_id}</div>
+                              <div style={{ fontSize: '0.78rem', fontWeight: 600 }}>
+                                {b.profiles?.full_name || b.profiles?.email?.split('@')[0] || 'Unknown User'}
+                              </div>
+                              <div style={{ fontSize: '0.65rem', color: 'var(--muted)' }}>
+                                {b.profiles?.email || b.user_id}
+                              </div>
                             </div>
                           </div>
 
-                          {/* Action buttons */}
                           {b.status === 'pending' && (
                             <div style={{ display: 'flex', gap: 8 }}>
-                              <button onClick={() => updateBookingStatus(b.id, 'rejected')} disabled={updating === b.id} style={{ padding: '7px 16px', borderRadius: 9, background: 'rgba(255,101,132,0.12)', border: '1px solid rgba(255,101,132,0.3)', color: '#ff6584', fontFamily: 'DM Sans,sans-serif', fontSize: '0.8rem', fontWeight: 600, cursor: 'none', transition: 'all 0.25s', display: 'flex', alignItems: 'center', gap: 5 }}
+                              <button onClick={() => updateBookingStatus(b.id, 'rejected')} disabled={updating === b.id}
+                                style={{ padding: '7px 16px', borderRadius: 9, background: 'rgba(255,101,132,0.12)', border: '1px solid rgba(255,101,132,0.3)', color: '#ff6584', fontFamily: 'DM Sans,sans-serif', fontSize: '0.8rem', fontWeight: 600, cursor: 'none', transition: 'all 0.25s' }}
                                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(255,101,132,0.2)' }}
                                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(255,101,132,0.12)' }}>
                                 {updating === b.id ? '...' : '❌ Reject'}
                               </button>
-                              <button onClick={() => updateBookingStatus(b.id, 'approved')} disabled={updating === b.id} style={{ padding: '7px 16px', borderRadius: 9, background: 'rgba(67,233,123,0.12)', border: '1px solid rgba(67,233,123,0.3)', color: '#43e97b', fontFamily: 'DM Sans,sans-serif', fontSize: '0.8rem', fontWeight: 600, cursor: 'none', transition: 'all 0.25s', display: 'flex', alignItems: 'center', gap: 5 }}
+                              <button onClick={() => updateBookingStatus(b.id, 'approved')} disabled={updating === b.id}
+                                style={{ padding: '7px 16px', borderRadius: 9, background: 'rgba(67,233,123,0.12)', border: '1px solid rgba(67,233,123,0.3)', color: '#43e97b', fontFamily: 'DM Sans,sans-serif', fontSize: '0.8rem', fontWeight: 600, cursor: 'none', transition: 'all 0.25s' }}
                                 onMouseEnter={e => { e.currentTarget.style.background = 'rgba(67,233,123,0.2)' }}
                                 onMouseLeave={e => { e.currentTarget.style.background = 'rgba(67,233,123,0.12)' }}>
                                 {updating === b.id ? '...' : '✅ Approve'}
@@ -232,7 +235,8 @@ export default function Admin() {
                           )}
 
                           {b.status !== 'pending' && (
-                            <button onClick={() => updateBookingStatus(b.id, 'pending')} style={{ padding: '6px 14px', borderRadius: 9, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', color: 'var(--muted)', fontFamily: 'DM Sans,sans-serif', fontSize: '0.75rem', cursor: 'none', transition: 'all 0.25s' }}>
+                            <button onClick={() => updateBookingStatus(b.id, 'pending')}
+                              style={{ padding: '6px 14px', borderRadius: 9, background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border)', color: 'var(--muted)', fontFamily: 'DM Sans,sans-serif', fontSize: '0.75rem', cursor: 'none', transition: 'all 0.25s' }}>
                               ↩ Reset to Pending
                             </button>
                           )}
@@ -300,6 +304,7 @@ export default function Admin() {
           .grid-4 { grid-template-columns: 1fr 1fr !important; }
         }
         @keyframes spin { to{transform:rotate(360deg)} }
+        @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:none} }
       `}</style>
     </>
   )
