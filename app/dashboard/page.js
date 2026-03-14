@@ -232,7 +232,7 @@ export default function Dashboard() {
                       <option value="">🏛️ Select Venue</option>
                       <option>Mini Hall - 1</option><option>J.C. Bose Hall</option><option>Faraday Hall</option>
                     </select>
-                    <input type="date" style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 9, color: 'var(--text)', fontFamily: 'DM Sans,sans-serif', fontSize: '0.83rem', outline: 'none' }} />
+                    <input type="date" min={new Date().toISOString().split('T')[0]} style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 9, color: 'var(--text)', fontFamily: 'DM Sans,sans-serif', fontSize: '0.83rem', outline: 'none' }} />
                     <Link href="/venues" style={{ padding: 11, borderRadius: 9, background: 'linear-gradient(135deg,#6c63ff,#9b55ff)', color: 'white', fontFamily: 'var(--font-syne)', fontWeight: 700, fontSize: '0.85rem', textAlign: 'center', textDecoration: 'none', display: 'block', transition: 'all 0.3s' }}>Book Now →</Link>
                   </div>
                 </div>
