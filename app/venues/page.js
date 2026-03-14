@@ -80,6 +80,15 @@ export default function Venues() {
       alert('Please fill in all required fields!')
       return
     }
+    const maxCap = parseInt(selectedVenue?.cap?.replace(',',''))
+    if (attendees && parseInt(attendees) > maxCap) {
+      alert(`Attendees cannot exceed venue capacity of ${selectedVenue?.cap} seats!`)
+      return
+    }
+    if (attendees && parseInt(attendees) < 1) {
+      alert('Attendees must be at least 1!')
+      return
+    }
     setLoading(true)
     try {
       const { error } = await supabase.from('bookings').insert([{
@@ -223,7 +232,13 @@ export default function Venues() {
                   </div>
                   <div>
                     <label style={{ display: 'block', fontSize: '0.72rem', fontWeight: 700, color: 'var(--muted)', marginBottom: 7, textTransform: 'uppercase', letterSpacing: '0.4px' }}>Attendees</label>
-                    <input type="number" placeholder="e.g. 200" value={attendees} onChange={e => setAttendees(e.target.value)} style={{ width: '100%', padding: '11px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: 'var(--text)', fontFamily: 'DM Sans,sans-serif', fontSize: '0.85rem', outline: 'none' }} />
+                    <input type="number" placeholder="e.g. 200" min={1} max={parseInt(selectedVenue?.cap?.replace(',',''))} value={attendees} onChange={e => setAttendees(e.target.value)} style={{ width: '100%', padding: '11px 12px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 10, color: 'var(--text)', fontFamily: 'DM Sans,sans-serif', fontSize: '0.85rem', outline: 'none' }} />
+                    {attendees && parseInt(attendees) > parseInt(selectedVenue?.cap?.replace(',','')) && (
+                      <div style={{ fontSize: '0.72rem', color: '#ff6584', marginTop: 5 }}>⚠️ Exceeds venue capacity of {selectedVenue?.cap} seats</div>
+                    )}
+                    {attendees && parseInt(attendees) <= parseInt(selectedVenue?.cap?.replace(',','')) && (
+                      <div style={{ fontSize: '0.72rem', color: '#43e97b', marginTop: 5 }}>✓ Within capacity ({selectedVenue?.cap} max)</div>
+                    )}
                   </div>
                 </div>
 
