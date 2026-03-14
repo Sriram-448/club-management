@@ -37,19 +37,27 @@ export default function Admin() {
       if (session) {
         setUser(session.user)
 
-        // Get all bookings with user and venue info
+        // Get all bookings with venue info only
         const { data: bookingsData } = await supabase
           .from('bookings')
-          .select(`*, venues(name, emoji), profiles(full_name, email, username)`)
+          .select(`*, venues(name, emoji)`)
           .order('created_at', { ascending: false })
-        if (bookingsData) setBookings(bookingsData)
 
-        // Get all users
+        // Get all profiles separately
         const { data: usersData } = await supabase
           .from('profiles')
           .select('*')
           .order('created_at', { ascending: false })
         if (usersData) setUsers(usersData)
+
+        // Manually attach profile to each booking by matching user_id
+        if (bookingsData && usersData) {
+          const enriched = bookingsData.map(b => ({
+            ...b,
+            profiles: usersData.find(u => u.id === b.user_id) || null
+          }))
+          setBookings(enriched)
+        }
       }
       setLoading(false)
     }
